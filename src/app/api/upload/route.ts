@@ -19,7 +19,9 @@ export async function POST(request: Request) {
         .upload_stream(
           {
             folder: "shops_logos",
-            resource_type: "auto",
+            resource_type: "image",
+            format: "png",
+            transformation: [{ width: 1000, height: 1000, crop: "limit" }],
           },
           (error, result) => {
             if (error) reject(error);

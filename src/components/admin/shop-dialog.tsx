@@ -230,7 +230,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
                   <Input
                     type="file"
                     className="absolute inset-0 opacity-0 cursor-pointer"
-                    accept="image/*"
+                    accept="image/png, image/jpeg, image/jpg, image/svg+xml, .svg"
                     onChange={handleFileChange}
                     disabled={isUploading}
                   />
@@ -317,7 +317,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
           </div>
 
           {/* КНОПКИ: На мобильном одна под другой */}
-          <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-0 mt-2">
+          <DialogFooter className="flex-col-reverse sm:flex-rowgap-2 mt-2">
             <Button
               type="button"
               variant="outline"
