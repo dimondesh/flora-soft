@@ -1,3 +1,4 @@
+// src/app/admin/shops/page.tsx
 import connectDB from "@/lib/db";
 import Shop from "@/models/Shop";
 import {
@@ -9,20 +10,29 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink } from "lucide-react";
-import { AddShopDialog } from "@/components/admin/add-shop-dialog";
+import { ExternalLink, Store } from "lucide-react";
+import { ShopDialog } from "@/components/admin/shop-dialog"; // Обновленный импорт
+import { DeleteShopButton } from "@/components/admin/delete-shop-button"; // Создадим ниже
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminShopsPage() {
   await connectDB();
-  const shops = await Shop.find().sort({ createdAt: -1 }).lean();
+  // Сериализуем данные для передачи в клиентские компоненты
+  const shops = (await Shop.find().sort({ createdAt: -1 }).lean()).map(
+    (shop: any) => ({
+      ...shop,
+      _id: shop._id.toString(),
+      createdAt: shop.createdAt.toISOString(),
+      updatedAt: shop.updatedAt.toISOString(),
+    }),
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Магазини</h1>
-        <AddShopDialog />
+        <ShopDialog mode="create" />
       </div>
 
       <div className="rounded-md border bg-white shadow-sm">
@@ -30,22 +40,27 @@ export default async function AdminShopsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Назва</TableHead>
-              <TableHead>Slug (Посилання)</TableHead>
+              <TableHead>Slug</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Статус</TableHead>
-              <TableHead className="text-right">Тест</TableHead>
+              <TableHead className="text-right">Дії</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {shops.map((shop: any) => (
-              <TableRow key={shop._id.toString()}>
+            {shops.map((shop) => (
+              <TableRow key={shop._id}>
                 <TableCell className="font-medium flex items-center gap-3">
-                  {shop.logoUrl && (
+                  {shop.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={shop.logoUrl}
-                      alt=""
+                      alt={shop.name}
                       className="w-8 h-8 rounded-full object-cover border"
                     />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-slate-100 border flex items-center justify-center text-slate-400">
+                      <Store className="w-4 h-4" />
+                    </div>
                   )}
                   {shop.name}
                 </TableCell>
@@ -59,13 +74,22 @@ export default async function AdminShopsPage() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <a
-                    href={`/card?shop=${shop.slug}`}
-                    target="_blank"
-                    className="inline-flex items-center text-sm text-blue-600 hover:underline"
-                  >
-                    Відкрити <ExternalLink className="ml-1 w-3 h-3" />
-                  </a>
+                  <div className="flex items-center justify-end gap-2">
+                    <a
+                      href={`/card/${shop.slug}`}
+                      target="_blank"
+                      className="p-2 text-slate-500 hover:text-blue-600"
+                      title="Відкрити сторінку"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+
+                    {/* Кнопка Редактирования */}
+                    <ShopDialog mode="edit" shop={shop} />
+
+                    {/* Кнопка Удаления */}
+                    <DeleteShopButton id={shop._id} name={shop.name} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -75,7 +99,7 @@ export default async function AdminShopsPage() {
                   colSpan={5}
                   className="h-24 text-center text-slate-500"
                 >
-                  Магазинів поки немає. Створіть перший!
+                  Магазинів поки немає.
                 </TableCell>
               </TableRow>
             )}

@@ -13,7 +13,7 @@ export default function AdminLayout({
       <header className="sticky top-0 z-10 w-full border-b bg-white px-6 h-16 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-6">
           <Link href="/admin" className="font-bold text-xl text-slate-900">
-            FloraSoft Admin
+            Flora<span className="text-pink-500 m-0 p-0 ">Soft</span> Admin
           </Link>
           <nav className="flex gap-4">
             <Link href="/admin">

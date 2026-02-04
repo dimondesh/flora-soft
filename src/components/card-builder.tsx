@@ -194,7 +194,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
               alt="Logo"
               width={112}
               height={112}
-              className="w-28 h-28 object-contain rounded-full bg-white shadow-xl relative z-10 p-2"
+              className="w-28 h-28 object-cover rounded-full bg-white shadow-xl relative z-10 p-2"
               priority
             />
           ) : (

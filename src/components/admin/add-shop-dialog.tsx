@@ -13,13 +13,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Loader2, ImagePlus, X } from "lucide-react";
-import { CldUploadButton } from "next-cloudinary";
+import { Plus, Loader2, UploadCloud, X } from "lucide-react";
 
 export function AddShopDialog() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false); // Состояние загрузки картинки
 
   // Данные формы
   const [name, setName] = useState("");
@@ -36,16 +36,49 @@ export function AddShopDialog() {
         .toLowerCase()
         .replace(/і/g, "i")
         .replace(/ї/g, "yi")
-        .replace(/є/g, "ye") // Укр буквы
-        .replace(/[^a-z0-9]/g, "-") // Все кроме букв и цифр в дефис
-        .replace(/-+/g, "-"); // Убираем дубли дефисов
+        .replace(/є/g, "ye")
+        .replace(/[^a-z0-9]/g, "-")
+        .replace(/-+/g, "-");
       setSlug(generated);
     }
   };
 
+  // Обработчик выбора файла
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Помилка завантаження");
+
+      const data = await res.json();
+      setLogoUrl(data.url); // Сохраняем полученный URL из Cloudinary
+    } catch (error) {
+      console.error(error);
+      alert("Не вдалося завантажити зображення");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Удаление логотипа
+  const handleRemoveLogo = () => {
+    setLogoUrl("");
+    // Сброс инпута файла можно сделать через ref, но для простоты достаточно очистить стейт
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       const res = await fetch("/api/shop", {
@@ -71,7 +104,7 @@ export function AddShopDialog() {
       console.error(error);
       alert("Ошибка сети");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -87,17 +120,20 @@ export function AddShopDialog() {
           <DialogTitle>Додати новий магазин</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+          {/* Название */}
           <div className="grid gap-2">
             <Label htmlFor="name">Назва магазину</Label>
             <Input
               id="name"
               value={name}
               onChange={handleNameChange}
+              className="focus:border-pink-500! focus:ring-0! transition-all duration-300"
               placeholder="Rose Studio"
               required
             />
           </div>
 
+          {/* Slug */}
           <div className="grid gap-2">
             <Label htmlFor="slug">ID посилання (slug)</Label>
             <div className="flex items-center gap-2">
@@ -107,11 +143,13 @@ export function AddShopDialog() {
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="rose-studio"
+                className="focus:border-pink-500! focus:ring-0! transition-all duration-300"
                 required
               />
             </div>
           </div>
 
+          {/* Email */}
           <div className="grid gap-2">
             <Label htmlFor="email">Email для замовлень</Label>
             <Input
@@ -120,55 +158,65 @@ export function AddShopDialog() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="orders@rose.com"
+              className="focus:border-pink-500! focus:ring-0! transition-all duration-300"
               required
             />
           </div>
 
+          {/* Загрузка Логотипа */}
           <div className="grid gap-2">
-            <Label>Логотип</Label>
-
-            {!logoUrl ? (
-              <CldUploadButton
-                // ВАЖНО: Замени 'florasoft_preset' на имя своего пресета из Cloudinary
-                uploadPreset="florasoft_preset"
-                onSuccess={(result: any) => {
-                  // Cloudinary возвращает объект, нам нужен secure_url
-                  if (result.info && result.info.secure_url) {
-                    setLogoUrl(result.info.secure_url);
-                  }
-                }}
-                className="flex items-center justify-center w-full h-24 border-2 border-dashed border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer text-slate-500 gap-2 text-sm"
-              >
-                <ImagePlus className="w-4 h-4" />
-                Завантажити лого (PNG/SVG)
-              </CldUploadButton>
-            ) : (
-              <div className="relative w-full h-24 border rounded-lg overflow-hidden bg-slate-50 flex items-center justify-center group">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logoUrl}
-                  alt="Preview"
-                  className="h-16 w-16 object-contain"
-                />
-                <button
-                  type="button"
-                  onClick={() => setLogoUrl("")}
-                  className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm border opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-3 h-3 text-slate-500" />
-                </button>
-                <div className="absolute bottom-1 right-2 text-[10px] text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded">
-                  Завантажено
+            <Label>Логотип (зображення або SVG)</Label>
+            <div className="flex flex-col gap-3">
+              {!logoUrl ? (
+                // Состояние: нет логотипа -> показываем инпут
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept="image/*,.svg"
+                    onChange={handleFileChange}
+                    disabled={isUploading}
+                    className="cursor-pointer file:cursor-pointer"
+                  />
+                  {isUploading && (
+                    <Loader2 className="w-5 h-5 animate-spin text-slate-500" />
+                  )}
                 </div>
-              </div>
-            )}
-            {/* Скрытый инпут, чтобы отправить URL на сервер, если вдруг нужно (но мы используем state) */}
-            <input type="hidden" name="logoUrl" value={logoUrl} />
+              ) : (
+                // Состояние: логотип загружен -> показываем превью и кнопку удалить
+                <div className="flex items-center gap-4 p-2 border rounded-md bg-slate-50">
+                  <div className="w-12 h-12 relative rounded-full overflow-hidden bg-white border shrink-0 flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={logoUrl}
+                      alt="Logo preview"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-xs text-slate-500 truncate">{logoUrl}</p>
+                    <p className="text-[10px] text-green-600 font-medium mt-0.5">
+                      ✓ Завантажено
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleRemoveLogo}
+                    className="h-8 w-8 text-slate-400 hover:text-red-500"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={isSubmitting || isUploading}>
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Створити
             </Button>
           </DialogFooter>
