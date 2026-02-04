@@ -1,3 +1,4 @@
+// src/components/admin/shop-dialog.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,14 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Plus,
-  Loader2,
-  X,
-  Pencil,
-  Image as ImageIcon,
-  Upload,
-} from "lucide-react";
+import { Plus, Loader2, X, Pencil, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ShopDialogProps {
@@ -105,7 +99,6 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
       alert("Не вдалося завантажити зображення");
     } finally {
       setIsUploading(false);
-      // Сбрасываем инпут, чтобы можно было загрузить тот же файл повторно при желании
       e.target.value = "";
     }
   };
@@ -153,8 +146,9 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {mode === "create" ? (
-          <Button className="gap-2 bg-pink-600 hover:bg-pink-700 text-white">
-            <Plus className="w-4 h-4" /> Додати магазин
+          <Button className="gap-2 bg-pink-600 hover:bg-pink-700 text-white w-30 sm:w-auto">
+            <Plus className="w-4 h-4" />{" "}
+            <span className="sm:inline">Магазин</span>
           </Button>
         ) : (
           <Button
@@ -166,7 +160,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] w-[95%] rounded-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {mode === "create"
@@ -176,8 +170,8 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-6 py-4">
-          {/* СЕКЦИЯ ЛОГОТИПА (УЛУЧШЕННАЯ) */}
-          <div className="flex flex-row items-center gap-6">
+          {/* СЕКЦИЯ ЛОГОТИПА: Адаптив Flex */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             {/* Превью */}
             <div className="shrink-0">
               <div
@@ -201,7 +195,6 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
                   <ImageIcon className="w-8 h-8 text-slate-300" />
                 )}
 
-                {/* Кнопка удаления поверх лого */}
                 {logoUrl && !isUploading && (
                   <button
                     type="button"
@@ -215,13 +208,13 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
             </div>
 
             {/* Контролы загрузки */}
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-2 w-full text-center sm:text-left">
               <Label>Логотип магазину</Label>
               <div className="text-xs text-slate-500 mb-2">
-                Рекомендовано квадратне зображення (PNG, JPG)
+                Квадратне (PNG, JPG)
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -232,8 +225,8 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
                   {isUploading
                     ? "Завантаження..."
                     : logoUrl
-                      ? "Замінити фото"
-                      : "Завантажити фото"}
+                      ? "Замінити"
+                      : "Завантажити"}
                   <Input
                     type="file"
                     className="absolute inset-0 opacity-0 cursor-pointer"
@@ -247,7 +240,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full sm:w-auto"
                     onClick={handleRemoveLogo}
                   >
                     Видалити
@@ -270,7 +263,8 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* АДАПТИВНАЯ СЕТКА: 1 колонка на моб, 2 на десктопе */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="slug">Slug (Посилання)</Label>
                 <div className="relative">
@@ -300,7 +294,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
                   />
                   <label
                     htmlFor="isActive"
-                    className="ml-2 text-sm text-slate-700 cursor-pointer select-none"
+                    className="ml-2 text-sm text-slate-700 cursor-pointer select-none flex-1"
                   >
                     {isActive ? "Активний" : "Прихований"}
                   </label>
@@ -322,23 +316,25 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
             </div>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          {/* КНОПКИ: На мобильном одна под другой */}
+          <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-0 mt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
+              className="w-full sm:w-auto"
             >
               Скасувати
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting || isUploading}
-              className="bg-slate-900 text-white hover:bg-slate-800"
+              className="bg-slate-900 text-white hover:bg-slate-800 w-full sm:w-auto"
             >
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {mode === "create" ? "Створити магазин" : "Зберегти зміни"}
+              {mode === "create" ? "Створити" : "Зберегти"}
             </Button>
           </DialogFooter>
         </form>

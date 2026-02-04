@@ -1,3 +1,4 @@
+// src/components/admin/delete-shop-button.tsx
 "use client";
 
 import { useState } from "react";
@@ -33,7 +34,7 @@ export function DeleteShopButton({ id, name }: { id: string; name: string }) {
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert("Не вдалося видалити магазин"); // Тут alert можно оставить как фоллбэк на случай ошибки сервера
+      alert("Не вдалося видалити магазин");
     } finally {
       setLoading(false);
     }
@@ -50,30 +51,35 @@ export function DeleteShopButton({ id, name }: { id: string; name: string }) {
           <Trash2 className="w-4 h-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      {/* Адаптивная ширина */}
+      <DialogContent className="sm:max-w-[425px] w-[95%] rounded-xl">
         <DialogHeader>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
             </div>
             <div>
               <DialogTitle className="text-lg">Видалити магазин?</DialogTitle>
-              <DialogDescription className="mt-1">
+              <DialogDescription className="mt-1 text-sm sm:text-base">
                 Ви збираєтесь видалити магазин{" "}
-                <span className="font-semibold text-slate-900">
+                <span className="font-semibold text-slate-900 break-all">
                   &quot;{name}&quot;
                 </span>
                 .
-                <br />
-                Цю дію неможливо скасувати. Всі замовлення та налаштування
-                будуть втрачені назавжди.
+                <br className="hidden sm:block" />
+                Цю дію неможливо скасувати.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
-        <DialogFooter className="mt-4 gap-2 sm:gap-0">
+        {/* Адаптивные кнопки: на мобилке в колонку */}
+        <DialogFooter className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:gap-0 sm:justify-end">
           <DialogClose asChild>
-            <Button variant="outline" disabled={loading}>
+            <Button
+              variant="outline"
+              disabled={loading}
+              className="w-full sm:w-auto"
+            >
               Скасувати
             </Button>
           </DialogClose>
@@ -81,7 +87,7 @@ export function DeleteShopButton({ id, name }: { id: string; name: string }) {
             variant="destructive"
             onClick={handleDelete}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
           >
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Видалити

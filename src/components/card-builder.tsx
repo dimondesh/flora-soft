@@ -463,28 +463,29 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
 
       {/* МОДАЛКА */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="rounded-3xl p-8 max-w-sm mx-auto">
+        <DialogContent className="rounded-3xl p-6 md:p-8 w-[90%] max-w-sm mx-auto">
           <DialogHeader>
             <DialogTitle className="text-center text-xl">
               Останній крок
             </DialogTitle>
-            <DialogDescription className="text-center text-base">
-              Введіть 4 останні цифри вашого номеру телефону для ідентифікації
-              замовлення.
+            <DialogDescription className="text-center text-base mt-2">
+              Введіть 4 останні цифри вашого номеру телефону для ідентифікації.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center py-6">
             <Input
               placeholder="0000"
               maxLength={4}
-              className="text-center text-5xl tracking-[0.3em] w-[200px] h-20 font-mono bg-slate-50 border-2 rounded-2xl"
+              inputMode="numeric" // Клавиатура с цифрами на телефоне
+              pattern="[0-9]*"
+              className="text-center text-4xl md:text-5xl tracking-[0.3em] w-full max-w-[200px] h-16 md:h-20 font-mono bg-slate-50 border-2 rounded-2xl focus:border-pink-500! focus:ring-0!"
               value={phoneLast4}
               onChange={(e) => setPhoneLast4(e.target.value.replace(/\D/g, ""))}
             />
           </div>
           <DialogFooter>
             <Button
-              className="w-full h-14 text-lg rounded-2xl"
+              className="w-full h-12 md:h-14 text-lg rounded-2xl bg-slate-900"
               onClick={handleSend}
               disabled={phoneLast4.length < 4 || isLoading}
             >
