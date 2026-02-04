@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image"; // Импортируем компонент Image
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,7 +43,7 @@ const DESIGNS = {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770203577/1-12574_watercolor-flower-png-free-flower-pink-vector-png_kyet2r.png",
         bg: "bg-[#fff0f5]",
         text: "text-rose-900",
-        fit: "object-contain", // Для PNG краще contain
+        fit: "object-contain",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770203578/1000_F_612026850_6JlSZVdzOqa3sPiePleg5nqMtBVYWuib_ul4ah2.png",
@@ -58,14 +58,12 @@ const DESIGNS = {
     icon: Smile,
     variants: [
       {
-        // Тепле фото (пляж/літо)
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770207274/Gemini_Generated_Image_40q4kt40q4kt40q4_prll00.png",
         bg: "bg-yellow-100/50",
         text: "text-orange-900",
-        fit: "object-cover", // Для фото краще cover
+        fit: "object-cover",
       },
       {
-        // Тепле фото (осінь/затишок)
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770207273/Gemini_Generated_Image_30blr30blr30blr3_u4r5wx.png",
         bg: "bg-[#fff8e1]",
         text: "text-amber-900",
@@ -102,7 +100,6 @@ const DESIGNS = {
         fit: "object-contain",
       },
       {
-        // Тепле фото (осінь/затишок)
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770205210/ai-generated-watercolor-purple-floral-bouquet-clipart-gothic-flowers-illustration-free-png_jtgd4a.png",
         bg: "bg-[#f0f8ff]",
         text: "text-violet-900",
@@ -112,14 +109,14 @@ const DESIGNS = {
   },
 };
 
-// Оновлені підказки з реальними фразами для листівок
+// 1. ПРИБРАЛИ ЕМОДЗІ З ПІДКАЗОК
 const TEXT_HINTS = [
-  "З Днем Народження! 🎂",
-  "Ти — моє натхнення ❤️",
+  "З Днем Народження!",
+  "Ти — моє натхнення",
   "Дякую, що ти є",
   "Найщиріші вітання!",
   "Люблю тебе безмежно",
-  "Одужуй швидше 🌸",
+  "Одужуй швидше",
 ];
 
 interface ShopData {
@@ -128,6 +125,14 @@ interface ShopData {
   slug: string;
   _id: string;
 }
+
+// 2. ФУНКЦІЯ ДЛЯ ВИДАЛЕННЯ ЕМОДЗІ ПРИ ВВОДІ
+const stripEmojis = (str: string) => {
+  return str.replace(
+    /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}]/gu,
+    "",
+  );
+};
 
 export default function CardBuilder({ shop }: { shop: ShopData }) {
   const [step, setStep] = useState<"intro" | "editor" | "success">("intro");
@@ -168,6 +173,16 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
     }
   };
 
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const cleanValue = stripEmojis(e.target.value);
+    setText(cleanValue);
+  };
+
+  const handleSignatureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanValue = stripEmojis(e.target.value);
+    setSignature(cleanValue);
+  };
+
   if (step === "intro") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-white animate-in fade-in duration-500">
@@ -177,7 +192,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
             <Image
               src={shop.logoUrl}
               alt="Logo"
-              width={112} // w-28 = 7rem = 112px
+              width={112}
               height={112}
               className="w-28 h-28 object-contain rounded-full bg-white shadow-xl relative z-10 p-2"
               priority
@@ -246,14 +261,13 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Хедер */}
       <header className="bg-white/80 backdrop-blur-md px-6 py-4 border-b border-slate-100 sticky top-0 z-30 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {shop.logoUrl && (
             <Image
               src={shop.logoUrl}
               alt={shop.name}
-              width={32} // w-8 = 2rem = 32px
+              width={32}
               height={32}
               className="w-8 h-8 object-contain rounded-full"
             />
@@ -266,7 +280,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
       </header>
 
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-8">
-        {/* ЛІВА ЧАСТИНА: ПРЕВ'Ю (Фіксована позиція на ПК) */}
         <div className="w-full md:w-1/2 flex flex-col items-center">
           <div className="sticky top-24 w-full flex flex-col items-center gap-6">
             <div className="relative w-full aspect-[105/148] shadow-2xl rounded-sm overflow-hidden max-w-[340px] ring-1 ring-black/5 bg-white">
@@ -277,7 +290,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                 )}
               >
                 <div className="w-full h-[45%] overflow-hidden mb-5 relative mix-blend-multiply">
-                  {/* Замінили img на Image з fill для адаптивності */}
                   <Image
                     src={currentVariant.url}
                     alt="design"
@@ -365,7 +377,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                   className={cn(
                     "flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border transition-all",
                     category === key
-                      ? "bg-white border-pink-300 shadow-md text-slate-900"
+                      ? "bg-white border-pink-500 shadow-md text-slate-900"
                       : "bg-slate-100 border-transparent text-slate-400",
                   )}
                 >
@@ -397,9 +409,9 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
             </div>
             <Textarea
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={handleTextChange}
               placeholder="Напишіть кілька теплих слів…"
-              className="bg-white border-slate-200 rounded-2xl min-h-[140px] text-base p-4 focus:ring-pink-100"
+              className="bg-white focus:border-pink-500! duration-300 transition-all rounded-2xl min-h-[140px] text-base p-4 focus:ring-0!"
             />
           </div>
 
@@ -410,9 +422,9 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
             </Label>
             <Input
               value={signature}
-              onChange={(e) => setSignature(e.target.value)}
+              onChange={handleSignatureChange}
               placeholder="Ваше ім'я"
-              className="bg-white border-slate-200 rounded-2xl h-14 px-4 text-base"
+              className="bg-white focus:border-pink-500! transition-all duration-300 focus:ring-0! rounded-2xl h-14 px-4 text-base"
             />
           </div>
 
