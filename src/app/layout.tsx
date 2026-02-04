@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
-// 1. Импортируем красивые шрифты
-import { Inter, Playfair_Display, Great_Vibes } from "next/font/google";
+import { Inter, Marck_Script, Great_Vibes } from "next/font/google";
 import "./globals.css";
 
-// 2. Настраиваем их
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
   variable: "--font-inter",
 });
-const playfair = Playfair_Display({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-playfair",
+
+// "Елегантний" теперь Marck Script
+const marckScript = Marck_Script({
+  weight: "400",
+  subsets: ["cyrillic", "latin"],
+  variable: "--font-playfair", // Оставляем старое имя переменной
 });
+
+// "Рукописный" теперь Great Vibes
 const greatVibes = Great_Vibes({
   weight: "400",
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"], // Убедись, что шрифт поддерживает кириллицу
   variable: "--font-vibes",
 });
 
@@ -31,8 +34,7 @@ export default function RootLayout({
   return (
     <html lang="uk">
       <body
-        // 3. Добавляем переменные шрифтов в body
-        className={`${inter.variable} ${playfair.variable} ${greatVibes.variable} font-sans antialiased bg-slate-50 text-slate-900`}
+        className={`${inter.variable} ${marckScript.variable} ${greatVibes.variable} font-sans antialiased bg-slate-50 text-slate-900`}
       >
         {children}
       </body>

@@ -10,21 +10,34 @@ import {
 import path from "path";
 import fs from "fs";
 
-// --- 1. НАДЕЖНАЯ ЗАГРУЗКА ШРИФТОВ ---
+// --- 1. ЗАГРУЗКА ШРИФТОВ (BASE64) ---
+// Мы читаем файл и превращаем его в строку data:font/ttf;base64...
+// Это решает ошибку "dataUrl.split is not a function" и работает везде.
+
 const loadFont = (filename: string) => {
   try {
     const filePath = path.join(process.cwd(), "public", "fonts", filename);
-    return fs.readFileSync(filePath);
+    if (fs.existsSync(filePath)) {
+      const buffer = fs.readFileSync(filePath);
+      return `data:font/ttf;base64,${buffer.toString("base64")}`;
+    }
+    console.warn(`⚠️ Шрифт не найден по пути: ${filePath}`);
+    return undefined;
   } catch (e) {
     console.error(`❌ Ошибка чтения шрифта ${filename}:`, e);
-    return null;
+    return undefined;
   }
 };
 
+// Загружаем файлы в память
+const robotoRegular = loadFont("Roboto-Regular.ttf");
+const robotoBold = loadFont("Roboto-Bold.ttf");
+const marckScript = loadFont("MarckScript-Regular.ttf");
+const greatVibes = loadFont("GreatVibes-Regular.ttf"); // Не забудь добавить этот файл!
+const playfair = loadFont("PlayfairDisplay-Regular.ttf"); // Оставим на всякий случай
+
 try {
-  // Roboto (основной)
-  const robotoRegular = loadFont("Roboto-Regular.ttf");
-  const robotoBold = loadFont("Roboto-Bold.ttf");
+  // Roboto (Основной)
   if (robotoRegular && robotoBold) {
     Font.register({
       family: "Roboto",
@@ -35,43 +48,49 @@ try {
     });
   }
 
-  // Playfair (Serif)
-  const playfair = loadFont("PlayfairDisplay-Regular.ttf");
-  if (playfair) {
+  // Marck Script (теперь это "Элегантный")
+  if (marckScript) {
     Font.register({
-      family: "Playfair",
-      src: playfair,
+      family: "MarckScript",
+      src: marckScript,
     });
   }
 
-  // Cursive (Handwritten)
-  const cursive = loadFont("MarckScript-Regular.ttf");
-  if (cursive) {
+  // Great Vibes (теперь это "Рукописный")
+  if (greatVibes) {
     Font.register({
-      family: "Cursive",
-      src: cursive,
+      family: "GreatVibes",
+      src: greatVibes,
     });
+  } else {
+    // Фоллбэк, если GreatVibes не скачан - используем MarckScript
+    if (marckScript) {
+      Font.register({ family: "GreatVibes", src: marckScript });
+    }
+  }
+
+  // Playfair (на случай если старый id где-то остался)
+  if (playfair) {
+    Font.register({ family: "Playfair", src: playfair });
   }
 } catch (error) {
   console.error("🔥 Ошибка регистрации шрифтов:", error);
 }
 
-// --- 2. СТИЛИ (TOЧНАЯ КОПИЯ ПРЕВЬЮ) ---
+// --- 2. СТИЛИ ---
 const styles = StyleSheet.create({
   page: {
-    padding: 24, // Соответствует p-6 (24px)
+    padding: 24, // p-6
     flexDirection: "column",
   },
-  // Основной контейнер на всю страницу
   container: {
     flex: 1,
     flexDirection: "column",
   },
-  // 1. Картинка (45% высоты, отступ снизу 20px)
   imageSection: {
     height: "45%",
     width: "100%",
-    marginBottom: 20, // mb-5
+    marginBottom: 20,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -79,33 +98,29 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  // 2. Блок контента (Текст + Подпись)
-  // Занимает все оставшееся место (flex-1)
   contentSection: {
     flexGrow: 1,
     flexDirection: "column",
-    // Важно: БЕЗ justifyContent: center, чтобы текст был сверху
+    // Текст начинается сверху блока
   },
   text: {
     fontSize: 14,
-    textAlign: "center", // text-center
-    color: "#334155", // slate-700
+    textAlign: "center",
+    color: "#334155",
     lineHeight: 1.5,
   },
-  // 3. Подпись (прижата к низу блока контента)
   signatureWrapper: {
-    marginTop: "auto", // Аналог mt-auto: прижимает к низу
-    paddingTop: 10, // pt-2
+    marginTop: "auto", // Прижимаем к низу
+    paddingTop: 10,
     width: "100%",
-    alignItems: "flex-end", // Выравнивание контейнера вправо
+    alignItems: "flex-end", // Выравниваем вправо
   },
   signature: {
-    fontSize: 16, // Чуть крупнее текста (text-xl vs text-lg)
-    textAlign: "right", // text-right
+    fontSize: 16,
+    textAlign: "right",
     color: "#334155",
     opacity: 0.9,
   },
-  // 4. Футер (Магазин) - Отдельно в самом низу
   footer: {
     height: 30,
     justifyContent: "flex-end",
@@ -189,8 +204,13 @@ export const CardPdfDocument = ({
   const config = DESIGNS[designId] || DESIGNS["gentle_0"];
 
   let activeFontFamily = "Roboto";
-  if (fontId === "font-playfair") activeFontFamily = "Playfair";
-  if (fontId === "font-vibes") activeFontFamily = "Cursive";
+
+  // --- ЛОГИКА ВЫБОРА ШРИФТОВ ---
+  // font-playfair (Элегантный) -> теперь использует MarckScript
+  // font-vibes (Рукописный) -> теперь использует GreatVibes
+
+  if (fontId === "font-playfair") activeFontFamily = "MarckScript";
+  if (fontId === "font-vibes") activeFontFamily = "GreatVibes";
 
   return (
     <Document>
