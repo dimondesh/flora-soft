@@ -25,14 +25,14 @@ export async function GET(
         text={order.customerText}
         signature={order.customerSign}
         designId={order.designId}
-        shopName={order.shopId.name}
-        fontId={order.fontId} // <--- ДОБАВИЛ ЭТУ СТРОКУ! Без нее шрифт не меняется.
+        shopName={(order.shopId as any)?.name || "FloraSoft"}
+        fontId={order.fontId}
       />,
     );
 
     const chunks: Uint8Array[] = [];
     for await (const chunk of pdfStream) {
-      chunks.push(chunk);
+      chunks.push(chunk as Uint8Array);
     }
     const pdfBuffer = Buffer.concat(chunks);
 

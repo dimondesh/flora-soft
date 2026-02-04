@@ -61,7 +61,7 @@ export async function POST(req: Request) {
 
     const chunks: Uint8Array[] = [];
     for await (const chunk of pdfStream) {
-      chunks.push(chunk);
+      chunks.push(chunk as Uint8Array);
     }
     const pdfBuffer = Buffer.concat(chunks);
 

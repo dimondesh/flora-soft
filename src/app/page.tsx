@@ -9,14 +9,10 @@ export default function Home() {
       <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl text-slate-800">
-            <div className="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center text-pink-600">
-              <Flower2 className="w-5 h-5" />
-            </div>
-            FloraSoft
+            <Link href="/" className="font-bold text-xl text-slate-900">
+              Flora<span className="text-pink-500 m-0 p-0 ">Soft</span>
+            </Link>
           </div>
-          <Link href="/admin">
-            <Button variant="ghost">Вхід для адміна</Button>
-          </Link>
         </div>
       </header>
 
@@ -31,16 +27,6 @@ export default function Home() {
           створюють листівку за хвилину, а ви отримуєте готовий PDF-файл для
           друку.
         </p>
-        <div className="flex items-center justify-center gap-4">
-          <Link href="/admin">
-            <Button
-              size="lg"
-              className="h-12 px-8 text-lg rounded-full shadow-lg hover:shadow-pink-200/50 hover:bg-slate-800 transition-all"
-            >
-              Перейти в Адмінку <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
       </section>
 
       {/* Features */}
