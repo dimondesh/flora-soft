@@ -11,9 +11,6 @@ import path from "path";
 import fs from "fs";
 
 // --- 1. ЗАГРУЗКА ШРИФТОВ (BASE64) ---
-// Мы читаем файл и превращаем его в строку data:font/ttf;base64...
-// Это решает ошибку "dataUrl.split is not a function" и работает везде.
-
 const loadFont = (filename: string) => {
   try {
     const filePath = path.join(process.cwd(), "public", "fonts", filename);
@@ -29,15 +26,13 @@ const loadFont = (filename: string) => {
   }
 };
 
-// Загружаем файлы в память
 const robotoRegular = loadFont("Roboto-Regular.ttf");
 const robotoBold = loadFont("Roboto-Bold.ttf");
 const marckScript = loadFont("MarckScript-Regular.ttf");
-const greatVibes = loadFont("GreatVibes-Regular.ttf"); // Не забудь добавить этот файл!
-const playfair = loadFont("PlayfairDisplay-Regular.ttf"); // Оставим на всякий случай
+const greatVibes = loadFont("GreatVibes-Regular.ttf");
+const playfair = loadFont("PlayfairDisplay-Regular.ttf");
 
 try {
-  // Roboto (Основной)
   if (robotoRegular && robotoBold) {
     Font.register({
       family: "Roboto",
@@ -48,7 +43,6 @@ try {
     });
   }
 
-  // Marck Script (теперь это "Элегантный")
   if (marckScript) {
     Font.register({
       family: "MarckScript",
@@ -56,20 +50,17 @@ try {
     });
   }
 
-  // Great Vibes (теперь это "Рукописный")
   if (greatVibes) {
     Font.register({
       family: "GreatVibes",
       src: greatVibes,
     });
   } else {
-    // Фоллбэк, если GreatVibes не скачан - используем MarckScript
     if (marckScript) {
       Font.register({ family: "GreatVibes", src: marckScript });
     }
   }
 
-  // Playfair (на случай если старый id где-то остался)
   if (playfair) {
     Font.register({ family: "Playfair", src: playfair });
   }
@@ -77,10 +68,24 @@ try {
   console.error("🔥 Ошибка регистрации шрифтов:", error);
 }
 
-// --- 2. СТИЛИ ---
+// --- КОНСТАНТИ РОЗМІРІВ ---
+// 1mm = 2.83465pt
+const MM_TO_PT = 2.83465;
+
+// A6 (105mm x 148mm) + Bleed (3mm з кожного боку)
+// Ширина: 105 + 3 + 3 = 111mm
+// Висота: 148 + 3 + 3 = 154mm
+const PAGE_WIDTH = 111 * MM_TO_PT;
+const PAGE_HEIGHT = 154 * MM_TO_PT;
+
+// Відступ безпечної зони від краю PDF файлу
+// 3mm (виліт) + 7mm (безпечна зона) = 10mm
+const CONTENT_PADDING = 10 * MM_TO_PT;
+
+// --- 2. СТИЛІ ---
 const styles = StyleSheet.create({
   page: {
-    padding: 24, // p-6
+    padding: CONTENT_PADDING, // 10mm від краю фізичного файлу
     flexDirection: "column",
   },
   container: {
@@ -101,7 +106,6 @@ const styles = StyleSheet.create({
   contentSection: {
     flexGrow: 1,
     flexDirection: "column",
-    // Текст начинается сверху блока
   },
   text: {
     fontSize: 14,
@@ -110,7 +114,7 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
   },
   signatureWrapper: {
-    marginTop: "auto", // Прижимаем к низу
+    marginTop: "auto",
     paddingTop: 10,
     width: "100%",
     alignItems: "flex-end", // Выравниваем вправо
@@ -205,16 +209,15 @@ export const CardPdfDocument = ({
 
   let activeFontFamily = "Roboto";
 
-  // --- ЛОГИКА ВЫБОРА ШРИФТОВ ---
-  // font-playfair (Элегантный) -> теперь использует MarckScript
-  // font-vibes (Рукописный) -> теперь использует GreatVibes
-
   if (fontId === "font-playfair") activeFontFamily = "MarckScript";
   if (fontId === "font-vibes") activeFontFamily = "GreatVibes";
 
   return (
     <Document>
-      <Page size="A6" style={[styles.page, { backgroundColor: config.color }]}>
+      <Page
+        size={[PAGE_WIDTH, PAGE_HEIGHT]}
+        style={[styles.page, { backgroundColor: config.color }]}
+      >
         <View style={styles.container}>
           {/* Верх: Картинка */}
           <View style={styles.imageSection}>
