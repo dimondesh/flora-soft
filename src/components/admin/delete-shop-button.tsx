@@ -51,29 +51,32 @@ export function DeleteShopButton({ id, name }: { id: string; name: string }) {
           <Trash2 className="w-4 h-4" />
         </Button>
       </DialogTrigger>
-      {/* Адаптивная ширина */}
-      <DialogContent className="sm:max-w-[425px] w-[95%] rounded-xl">
+
+      {/* Адаптивная ширина и отступы */}
+      <DialogContent className="sm:max-w-[425px] w-[95%] rounded-2xl p-6">
         <DialogHeader>
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+          {/* MOBILE: Flex-col + Center | DESKTOP: Flex-row + Left */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
-            <div>
-              <DialogTitle className="text-lg">Видалити магазин?</DialogTitle>
-              <DialogDescription className="mt-1 text-sm sm:text-base">
+            <div className="w-full">
+              <DialogTitle className="text-xl">Видалити магазин?</DialogTitle>
+              <DialogDescription className="mt-2 text-sm text-slate-600 leading-relaxed">
                 Ви збираєтесь видалити магазин{" "}
-                <span className="font-semibold text-slate-900 break-all">
+                <span className="font-bold text-slate-900 break-all">
                   &quot;{name}&quot;
                 </span>
                 .
-                <br className="hidden sm:block" />
+                <br />
                 Цю дію неможливо скасувати.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
-        {/* Адаптивные кнопки: на мобилке в колонку */}
-        <DialogFooter className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:gap-0 sm:justify-end">
+
+        {/* DialogFooter в shadcn автоматически делает flex-col-reverse на мобильных */}
+        <DialogFooter className="mt-6 gap-3 sm:gap-0">
           <DialogClose asChild>
             <Button
               variant="outline"
@@ -87,7 +90,7 @@ export function DeleteShopButton({ id, name }: { id: string; name: string }) {
             variant="destructive"
             onClick={handleDelete}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
+            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 sm:ml-2"
           >
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Видалити

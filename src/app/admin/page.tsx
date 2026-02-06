@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// Добавляем компоненты карточки для мобильной версии
 import {
   Card,
   CardContent,
@@ -18,20 +17,41 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Download, Calendar, User, FileText } from "lucide-react";
+import { Download, Calendar, User } from "lucide-react";
 import connectDB from "@/lib/db";
 import Order from "@/models/Order";
 import Shop from "@/models/Shop";
+import { PaginationControls } from "@/components/admin/pagination-controls";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminOrdersPage() {
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function AdminOrdersPage({ searchParams }: PageProps) {
   await connectDB();
 
+  // 1. Получаем номер страницы из URL
+  const params = await searchParams;
+  const page = Number(params.page) || 1;
+  const limit = 10; // Количество заказов на страницу
+  const skip = (page - 1) * limit;
+
+  // 2. Получаем общее количество для расчета страниц
+  const totalOrders = await Order.countDocuments();
+  const totalPages = Math.ceil(totalOrders / limit);
+
+  // 3. Запрос с пагинацией
   const orders = await Order.find()
     .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
     .populate({ path: "shopId", model: Shop })
     .lean();
+
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
 
   return (
     <div className="space-y-6">
@@ -40,7 +60,7 @@ export default async function AdminOrdersPage() {
           Замовлення
         </h1>
         <div className="text-slate-500 text-sm bg-white px-3 py-1 rounded-full border shadow-sm">
-          Всього: {orders.length}
+          Всього: {totalOrders}
         </div>
       </div>
 
@@ -67,7 +87,6 @@ export default async function AdminOrdersPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-3 pb-3">
-              {/* Дата */}
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Calendar className="w-4 h-4 text-slate-400" />
                 {new Date(order.createdAt).toLocaleDateString("uk-UA", {
@@ -77,7 +96,6 @@ export default async function AdminOrdersPage() {
                   minute: "2-digit",
                 })}
               </div>
-              {/* Клиент */}
               <div className="flex items-start gap-2 text-sm text-slate-700 bg-slate-50 p-2 rounded-md">
                 <User className="w-4 h-4 text-slate-400 mt-0.5" />
                 <div>
@@ -107,7 +125,7 @@ export default async function AdminOrdersPage() {
         ))}
         {orders.length === 0 && (
           <div className="text-center py-10 text-slate-500">
-            Немає замовлень
+            Замовлень не знайдено
           </div>
         )}
       </div>
@@ -186,6 +204,16 @@ export default async function AdminOrdersPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* --- PAGINATION --- */}
+      {totalPages > 1 && (
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          hasNextPage={hasNextPage}
+          hasPrevPage={hasPrevPage}
+        />
+      )}
     </div>
   );
 }

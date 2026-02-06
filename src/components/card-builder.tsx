@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +15,6 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
-  ChevronRight,
-  ChevronLeft,
   Heart,
   Sparkles,
   Smile,
@@ -26,6 +24,14 @@ import {
   Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 // --- КОНФІГУРАЦІЯ ---
 const FONTS = [
@@ -109,6 +115,16 @@ const DESIGNS = {
   },
 };
 
+// Створюємо плоский масив для каруселі
+const FLATTENED_VARIANTS = Object.entries(DESIGNS).flatMap(
+  ([catKey, catData]) =>
+    catData.variants.map((variant, index) => ({
+      category: catKey as keyof typeof DESIGNS,
+      variantIndex: index,
+      ...variant,
+    })),
+);
+
 const TEXT_HINTS = [
   "З Днем Народження!",
   "Ти — моє натхнення",
@@ -134,8 +150,11 @@ const stripEmojis = (str: string) => {
 
 export default function CardBuilder({ shop }: { shop: ShopData }) {
   const [step, setStep] = useState<"intro" | "editor" | "success">("intro");
+
+  // State тепер слугує більше для відображення UI, ніж для контролю слайдера
   const [category, setCategory] = useState<keyof typeof DESIGNS>("gentle");
   const [variantIndex, setVariantIndex] = useState(0);
+
   const [selectedFont, setSelectedFont] = useState(FONTS[0]);
   const [text, setText] = useState("");
   const [signature, setSignature] = useState("");
@@ -143,6 +162,34 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
   const [phoneLast4, setPhoneLast4] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
+
+  // API для керування каруселлю
+  const [api, setApi] = useState<CarouselApi>();
+
+  // СИНХРОНІЗАЦІЯ: Коли гортаємо карусель -> оновлюємо state (щоб підсвітити кнопку категорії)
+  useEffect(() => {
+    if (!api) return;
+
+    api.on("select", () => {
+      const index = api.selectedScrollSnap();
+      const variant = FLATTENED_VARIANTS[index];
+      if (variant) {
+        setCategory(variant.category);
+        setVariantIndex(variant.variantIndex);
+      }
+    });
+  }, [api]);
+
+  // СИНХРОНІЗАЦІЯ: Коли клікаємо на кнопку категорії -> крутимо карусель
+  const handleCategoryClick = (catKey: keyof typeof DESIGNS) => {
+    if (!api) return;
+    const index = FLATTENED_VARIANTS.findIndex(
+      (v) => v.category === catKey && v.variantIndex === 0,
+    );
+    if (index !== -1) {
+      api.scrollTo(index);
+    }
+  };
 
   const handleSend = async () => {
     setIsLoading(true);
@@ -255,8 +302,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
     );
   }
 
-  const currentVariant = DESIGNS[category].variants[variantIndex];
-
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white/80 backdrop-blur-md px-6 py-4 border-b border-slate-100 sticky top-0 z-30 flex items-center justify-between">
@@ -280,77 +325,81 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-8">
         <div className="w-full md:w-1/2 flex flex-col items-center">
           <div className="sticky top-24 w-full flex flex-col items-center gap-6">
-            <div className="relative w-full aspect-[105/148] shadow-2xl rounded-sm overflow-hidden max-w-[340px] ring-1 ring-black/5 bg-white">
-              <div
-                className={cn(
-                  "w-full h-full p-7 flex flex-col items-center text-center transition-all duration-500", // p-7 ~ 28px ~= 7.4mm (безпечна зона)
-                  currentVariant.bg,
-                )}
-              >
-                <div className="w-full h-[45%] overflow-hidden mb-5 relative mix-blend-multiply">
-                  <Image
-                    src={currentVariant.url}
-                    alt="design"
-                    fill
-                    className={cn("object-center", currentVariant.fit)}
-                    sizes="(max-width: 768px) 100vw, 340px"
-                    priority
-                  />
-                </div>
-                <div className="flex-1 w-full overflow-hidden">
-                  <p
-                    className={cn(
-                      "text-lg whitespace-pre-wrap leading-relaxed break-words",
-                      currentVariant.text,
-                      selectedFont.class,
-                    )}
-                  >
-                    {text || "Напишіть кілька теплих слів…"}
-                  </p>
-                </div>
-                {signature && (
-                  <div className="w-full text-right mt-auto pt-2">
-                    <p
-                      className={cn(
-                        "text-xl opacity-90",
-                        currentVariant.text,
-                        selectedFont.class,
-                      )}
+            {/* --- CAROUSEL --- */}
+            <Carousel
+              setApi={setApi}
+              className="w-full max-w-[340px]"
+              opts={{
+                loop: true,
+              }}
+            >
+              <CarouselContent>
+                {FLATTENED_VARIANTS.map((variant, index) => {
+                  const isActive =
+                    category === variant.category &&
+                    variantIndex === variant.variantIndex;
+                  return (
+                    <CarouselItem
+                      key={`${variant.category}-${variant.variantIndex}`}
                     >
-                      {signature}
-                    </p>
-                  </div>
-                )}
-              </div>
+                      <div className="p-0">
+                        <div
+                          className={cn(
+                            "relative w-full aspect-[105/148] shadow-2xl rounded-sm overflow-hidden ring-1 ring-black/5 bg-white",
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "w-full h-full p-7 flex flex-col items-center text-center transition-all duration-500",
+                              variant.bg,
+                            )}
+                          >
+                            <div className="w-full h-[45%] overflow-hidden mb-5 relative mix-blend-multiply">
+                              <Image
+                                src={variant.url}
+                                alt="design"
+                                fill
+                                className={cn("object-center", variant.fit)}
+                                sizes="(max-width: 768px) 100vw, 340px"
+                                priority={isActive}
+                              />
+                            </div>
+                            <div className="flex-1 w-full overflow-hidden">
+                              <p
+                                className={cn(
+                                  "text-lg whitespace-pre-wrap leading-relaxed break-words select-none",
+                                  variant.text,
+                                  selectedFont.class,
+                                )}
+                              >
+                                {text || "Напишіть кілька теплих слів…"}
+                              </p>
+                            </div>
+                            {signature && (
+                              <div className="w-full text-right mt-auto pt-2">
+                                <p
+                                  className={cn(
+                                    "text-xl opacity-90 select-none",
+                                    variant.text,
+                                    selectedFont.class,
+                                  )}
+                                >
+                                  {signature}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  );
+                })}
+              </CarouselContent>
+              {/* Стрілки винесені трохи по боках */}
+              <CarouselPrevious className="left-2 bg-white/80 hover:bg-white border-0 shadow-md" />
+              <CarouselNext className="right-2 bg-white/80 hover:bg-white border-0 shadow-md" />
+            </Carousel>
 
-              {DESIGNS[category].variants.length > 1 && (
-                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 pointer-events-none">
-                  <button
-                    onClick={() =>
-                      setVariantIndex(
-                        (prev) =>
-                          (prev - 1 + DESIGNS[category].variants.length) %
-                          DESIGNS[category].variants.length,
-                      )
-                    }
-                    className="pointer-events-auto bg-white/90 p-2 rounded-full shadow-md hover:bg-white transition-colors"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <button
-                    onClick={() =>
-                      setVariantIndex(
-                        (prev) =>
-                          (prev + 1) % DESIGNS[category].variants.length,
-                      )
-                    }
-                    className="pointer-events-auto bg-white/90 p-2 rounded-full shadow-md hover:bg-white transition-colors"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                </div>
-              )}
-            </div>
             <p className="text-slate-400 text-xs font-medium uppercase tracking-tighter">
               Попередній перегляд (A6)
             </p>
@@ -368,10 +417,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
               {Object.entries(DESIGNS).map(([key, data]) => (
                 <button
                   key={key}
-                  onClick={() => {
-                    setCategory(key as any);
-                    setVariantIndex(0);
-                  }}
+                  onClick={() => handleCategoryClick(key as any)}
                   className={cn(
                     "flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border transition-all",
                     category === key

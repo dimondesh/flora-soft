@@ -10,25 +10,39 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card"; // Импортируем карточки
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Store, Mail, Link as LinkIcon } from "lucide-react";
 import { ShopDialog } from "@/components/admin/shop-dialog";
 import { DeleteShopButton } from "@/components/admin/delete-shop-button";
+import { PaginationControls } from "@/components/admin/pagination-controls";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminShopsPage() {
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function AdminShopsPage({ searchParams }: PageProps) {
   await connectDB();
 
-  const shopsRaw = await Shop.find().sort({ createdAt: -1 }).lean();
+  // 1. Пагинация
+  const params = await searchParams;
+  const page = Number(params.page) || 1;
+  const limit = 10; // Магазинов на странице
+  const skip = (page - 1) * limit;
 
+  const totalShops = await Shop.countDocuments();
+  const totalPages = Math.ceil(totalShops / limit);
+
+  // 2. Получаем только нужную часть магазинов
+  const shopsRaw = await Shop.find()
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  // 3. Подсчитываем заказы только для отображаемых магазинов
   const shops = await Promise.all(
     shopsRaw.map(async (shop: any) => {
       const count = await Order.countDocuments({ shopId: shop._id });
@@ -43,13 +57,21 @@ export default async function AdminShopsPage() {
     }),
   );
 
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl md:text-2xl font-bold tracking-tight">
           Магазини
         </h1>
-        <ShopDialog mode="create" />
+        <div className="flex items-center gap-4">
+          <div className="text-slate-500 text-sm hidden sm:block">
+            Всього: {totalShops}
+          </div>
+          <ShopDialog mode="create" />
+        </div>
       </div>
 
       {/* --- MOBILE VIEW (CARDS) --- */}
@@ -57,7 +79,6 @@ export default async function AdminShopsPage() {
         {shops.map((shop) => (
           <Card key={shop._id} className="shadow-sm overflow-hidden">
             <div className="flex p-4 gap-4 items-center border-b bg-slate-50/50">
-              {/* Лого */}
               <div className="shrink-0">
                 {shop.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -72,7 +93,6 @@ export default async function AdminShopsPage() {
                   </div>
                 )}
               </div>
-              {/* Название и Статус */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="font-bold text-lg truncate">{shop.name}</h3>
@@ -188,6 +208,16 @@ export default async function AdminShopsPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* --- PAGINATION --- */}
+      {totalPages > 1 && (
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          hasNextPage={hasNextPage}
+          hasPrevPage={hasPrevPage}
+        />
+      )}
     </div>
   );
 }
