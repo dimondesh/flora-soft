@@ -26,6 +26,7 @@ interface ShopDialogProps {
     email: string;
     logoUrl?: string;
     isActive: boolean;
+    showNameOnPdf?: boolean; // <-- типизация
   };
 }
 
@@ -41,6 +42,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
   const [email, setEmail] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [showNameOnPdf, setShowNameOnPdf] = useState(true); // <-- state
 
   // Заполнение формы при открытии
   useEffect(() => {
@@ -51,12 +53,14 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
         setEmail(shop.email);
         setLogoUrl(shop.logoUrl || "");
         setIsActive(shop.isActive);
+        setShowNameOnPdf(shop.showNameOnPdf ?? true); // <-- load val
       } else if (mode === "create") {
         setName("");
         setSlug("");
         setEmail("");
         setLogoUrl("");
         setIsActive(true);
+        setShowNameOnPdf(true); // <-- default
       }
     }
   }, [mode, shop, open]);
@@ -123,7 +127,15 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, slug, email, logoUrl, isActive }),
+        // Добавляем showNameOnPdf в payload
+        body: JSON.stringify({
+          name,
+          slug,
+          email,
+          logoUrl,
+          isActive,
+          showNameOnPdf,
+        }),
       });
 
       if (!res.ok) {
@@ -170,9 +182,8 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-6 py-4">
-          {/* СЕКЦИЯ ЛОГОТИПА: Адаптив Flex */}
+          {/* СЕКЦИЯ ЛОГОТИПА */}
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-            {/* Превью */}
             <div className="shrink-0">
               <div
                 className={cn(
@@ -207,7 +218,6 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
               </div>
             </div>
 
-            {/* Контролы загрузки */}
             <div className="flex-1 space-y-2 w-full text-center sm:text-left">
               <Label>Логотип магазину</Label>
               <div className="text-xs text-slate-500 mb-2">
@@ -263,7 +273,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
               />
             </div>
 
-            {/* АДАПТИВНАЯ СЕТКА: 1 колонка на моб, 2 на десктопе */}
+            {/* СЕТКА С НАСТРОЙКАМИ */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="slug">Slug (Посилання)</Label>
@@ -282,23 +292,46 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
                 </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="isActive">Статус</Label>
-                <div className="flex items-center h-9 px-3 border rounded-md bg-slate-50">
-                  <input
-                    id="isActive"
-                    type="checkbox"
-                    checked={isActive}
-                    onChange={(e) => setIsActive(e.target.checked)}
-                    className="w-4 h-4 text-pink-600 rounded border-gray-300 focus:ring-pink-500"
-                  />
-                  <label
-                    htmlFor="isActive"
-                    className="ml-2 text-sm text-slate-700 cursor-pointer select-none flex-1"
-                  >
-                    {isActive ? "Активний" : "Прихований"}
-                  </label>
+              {/* БЛОК ЧЕКБОКСОВ */}
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="isActive">Статус магазину</Label>
+                  <div className="flex items-center h-9 px-3 border rounded-md bg-slate-50">
+                    <input
+                      id="isActive"
+                      type="checkbox"
+                      checked={isActive}
+                      onChange={(e) => setIsActive(e.target.checked)}
+                      className="w-4 h-4 text-pink-600 rounded border-gray-300 focus:ring-pink-500"
+                    />
+                    <label
+                      htmlFor="isActive"
+                      className="ml-2 text-sm text-slate-700 cursor-pointer select-none flex-1"
+                    >
+                      {isActive ? "Активний" : "Прихований"}
+                    </label>
+                  </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Настройка PDF (на всю ширину или в сетке выше, вынес отдельно для наглядности) */}
+            <div className="grid gap-2">
+              <Label htmlFor="showName">Назва магазину в PDF</Label>
+              <div className="flex items-center h-9 px-3 border rounded-md bg-slate-50">
+                <input
+                  id="showName"
+                  type="checkbox"
+                  checked={showNameOnPdf}
+                  onChange={(e) => setShowNameOnPdf(e.target.checked)}
+                  className="w-4 h-4 text-pink-600 rounded border-gray-300 focus:ring-pink-500"
+                />
+                <label
+                  htmlFor="showName"
+                  className="ml-2 text-sm text-slate-700 cursor-pointer select-none flex-1"
+                >
+                  {showNameOnPdf ? "Відображати в макеті" : "Приховати"}
+                </label>
               </div>
             </div>
 
@@ -316,8 +349,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
             </div>
           </div>
 
-          {/* КНОПКИ: На мобильном одна под другой */}
-          <DialogFooter className="flex-col-reverse sm:flex-rowgap-2 mt-2">
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2 mt-2">
             <Button
               type="button"
               variant="outline"

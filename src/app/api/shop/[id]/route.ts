@@ -1,12 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/api/shop/[id]/route.ts
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Shop from "@/models/Shop";
 import cloudinary from "@/lib/cloudinary";
 
-// Хелпер для извлечения public_id из URL Cloudinary
-// Пример URL: https://res.cloudinary.com/.../shops_logos/my-logo.png
-// Нам нужно получить: shops_logos/my-logo
 const getPublicIdFromUrl = (url: string) => {
   try {
     const parts = url.split("/");
@@ -30,7 +28,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { name, slug, email, logoUrl, isActive } = body;
+    const { name, slug, email, logoUrl, isActive, showNameOnPdf } = body;
 
     await connectDB();
 
@@ -39,8 +37,6 @@ export async function PUT(
       return NextResponse.json({ error: "Магазин не найден" }, { status: 404 });
     }
 
-    // ЛОГИКА УДАЛЕНИЯ СТАРОЙ КАРТИНКИ
-    // Если новый URL отличается от старого И у старого был URL, удаляем старый из Cloudinary
     if (existingShop.logoUrl && existingShop.logoUrl !== logoUrl) {
       const publicId = getPublicIdFromUrl(existingShop.logoUrl);
       if (publicId) {
@@ -48,12 +44,15 @@ export async function PUT(
       }
     }
 
-    // Обновляем поля
     existingShop.name = name;
     existingShop.slug = slug;
     existingShop.email = email;
     existingShop.logoUrl = logoUrl;
     existingShop.isActive = isActive;
+
+    if (showNameOnPdf !== undefined) {
+      existingShop.showNameOnPdf = showNameOnPdf;
+    }
 
     await existingShop.save();
 
@@ -77,7 +76,6 @@ export async function DELETE(
       return NextResponse.json({ error: "Магазин не найден" }, { status: 404 });
     }
 
-    // Удаляем логотип из Cloudinary перед удалением из БД
     if (shop.logoUrl) {
       const publicId = getPublicIdFromUrl(shop.logoUrl);
       if (publicId) {

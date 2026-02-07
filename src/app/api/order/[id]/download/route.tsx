@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { renderToStream } from "@react-pdf/renderer";
 import connectDB from "@/lib/db";
 import Order from "@/models/Order";
-import Shop from "@/models/Shop";
+import Shop from "@/models/Shop"; // импорт нужен, даже если не используется напрямую, для populate
 import { CardPdfDocument } from "@/components/pdf-template";
 
 export async function GET(
@@ -19,13 +20,18 @@ export async function GET(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
+    // Приведение типов и логика имени
+    const shop = order.shopId as any;
+    // Проверяем: существует ли магазин И включена ли опция
+    const pdfShopName = shop && shop.showNameOnPdf ? shop.name : "";
+
     // Генерируем поток
     const pdfStream = await renderToStream(
       <CardPdfDocument
         text={order.customerText}
         signature={order.customerSign}
         designId={order.designId}
-        shopName={(order.shopId as any)?.name || "FloraSoft"}
+        shopName={pdfShopName} // <-- передаем результат проверки
         fontId={order.fontId}
       />,
     );

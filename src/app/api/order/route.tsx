@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { renderToStream } from "@react-pdf/renderer";
 import nodemailer from "nodemailer";
@@ -7,7 +8,6 @@ import Shop from "@/models/Shop";
 import { CardPdfDocument } from "@/components/pdf-template";
 
 // Настройка Nodemailer (для MVP).
-// Для продакшена в будущем заменишь на AWS SES.
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.ethereal.email",
   port: 587,
@@ -49,13 +49,16 @@ export async function POST(req: Request) {
     });
 
     // 4. Генерируем PDF
+    // ЛОГИКА: Если showNameOnPdf выключено, передаем пустую строку
+    const pdfShopName = shop.showNameOnPdf ? shop.name : "";
+
     const pdfStream = await renderToStream(
       <CardPdfDocument
         text={text}
         signature={signature}
         designId={designId}
         fontId={fontId}
-        shopName={shop.name}
+        shopName={pdfShopName} // <-- Используем переменную
       />,
     );
 
@@ -98,7 +101,6 @@ export async function POST(req: Request) {
       await newOrder.save();
     } catch (emailError) {
       console.error("Помилка відправки email:", emailError);
-      // Не фейлим запрос, если email не ушел, но заказ создан
     }
 
     return NextResponse.json({

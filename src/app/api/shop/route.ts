@@ -5,7 +5,7 @@ import Shop from "@/models/Shop";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, slug, email, logoUrl } = body;
+    const { name, slug, email, logoUrl, showNameOnPdf } = body;
 
     // Валидация
     if (!name || !slug || !email) {
@@ -17,7 +17,6 @@ export async function POST(req: Request) {
 
     await connectDB();
 
-    // Проверка уникальности slug
     const existingShop = await Shop.findOne({ slug });
     if (existingShop) {
       return NextResponse.json(
@@ -33,9 +32,11 @@ export async function POST(req: Request) {
       email,
       logoUrl,
       isActive: true,
+      showNameOnPdf: showNameOnPdf !== undefined ? showNameOnPdf : false,
     });
 
     return NextResponse.json(newShop, { status: 201 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

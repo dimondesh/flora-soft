@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -115,7 +116,6 @@ const DESIGNS = {
   },
 };
 
-// Створюємо плоский масив для каруселі
 const FLATTENED_VARIANTS = Object.entries(DESIGNS).flatMap(
   ([catKey, catData]) =>
     catData.variants.map((variant, index) => ({
@@ -150,8 +150,6 @@ const stripEmojis = (str: string) => {
 
 export default function CardBuilder({ shop }: { shop: ShopData }) {
   const [step, setStep] = useState<"intro" | "editor" | "success">("intro");
-
-  // State тепер слугує більше для відображення UI, ніж для контролю слайдера
   const [category, setCategory] = useState<keyof typeof DESIGNS>("gentle");
   const [variantIndex, setVariantIndex] = useState(0);
 
@@ -163,10 +161,8 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
   const [isLoading, setIsLoading] = useState(false);
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
 
-  // API для керування каруселлю
   const [api, setApi] = useState<CarouselApi>();
 
-  // СИНХРОНІЗАЦІЯ: Коли гортаємо карусель -> оновлюємо state (щоб підсвітити кнопку категорії)
   useEffect(() => {
     if (!api) return;
 
@@ -180,7 +176,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
     });
   }, [api]);
 
-  // СИНХРОНІЗАЦІЯ: Коли клікаємо на кнопку категорії -> крутимо карусель
   const handleCategoryClick = (catKey: keyof typeof DESIGNS) => {
     if (!api) return;
     const index = FLATTENED_VARIANTS.findIndex(
@@ -342,16 +337,27 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                     <CarouselItem
                       key={`${variant.category}-${variant.variantIndex}`}
                     >
-                      <div className="p-0">
+                      <div
+                        className={cn(
+                          "p-6 transition-all duration-500 ease-out", // Отступ для тени
+                          isActive
+                            ? "scale-100 opacity-100"
+                            : "scale-90 opacity-50 blur-[1px]", // Эффект фокуса
+                        )}
+                      >
                         <div
                           className={cn(
-                            "relative w-full aspect-[105/148] shadow-2xl rounded-sm overflow-hidden ring-1 ring-black/5 bg-white",
+                            "relative w-full aspect-[105/148] overflow-hidden rounded-sm bg-white transition-all duration-500",
+                            // Тень и контур
+                            isActive
+                              ? "shadow-[0_10px_20px_-2px_rgba(0,0,0,0.25)] ring-1 ring-black/5"
+                              : "shadow-none ring-1 ring-black/5",
+                            variant.bg,
                           )}
                         >
                           <div
                             className={cn(
-                              "w-full h-full p-7 flex flex-col items-center text-center transition-all duration-500",
-                              variant.bg,
+                              "w-full h-full p-7 flex flex-col items-center text-center",
                             )}
                           >
                             <div className="w-full h-[45%] overflow-hidden mb-5 relative mix-blend-multiply">
@@ -389,15 +395,19 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                               </div>
                             )}
                           </div>
+
+                          {/* Блик на активной карте для реализма */}
+                          {isActive && (
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/30 pointer-events-none mix-blend-overlay" />
+                          )}
                         </div>
                       </div>
                     </CarouselItem>
                   );
                 })}
               </CarouselContent>
-              {/* Стрілки винесені трохи по боках */}
               <CarouselPrevious className="left-2 bg-white/80 hover:bg-white border-0 shadow-md" />
-              <CarouselNext className="right-2 bg-white/80 hover:bg-white border-0 shadow-md" />
+              <CarouselNext className="right-2 bg-white/80 hover:bg-white border-0 shadow-md " />
             </Carousel>
 
             <p className="text-slate-400 text-xs font-medium uppercase tracking-tighter">
@@ -520,7 +530,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
             <Input
               placeholder="0000"
               maxLength={4}
-              inputMode="numeric" // Клавиатура с цифрами на телефоне
+              inputMode="numeric"
               pattern="[0-9]*"
               className="text-center text-4xl md:text-5xl tracking-[0.3em] w-full max-w-[200px] h-16 md:h-20 font-mono bg-slate-50 border-2 rounded-2xl focus:border-pink-500! focus:ring-0!"
               value={phoneLast4}
