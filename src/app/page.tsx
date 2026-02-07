@@ -1,11 +1,9 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Flower2, ShieldCheck, Zap } from "lucide-react";
+import { Flower2, ShieldCheck, Zap } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
-      {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl text-slate-800">
@@ -16,7 +14,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section className="py-20 px-6 text-center max-w-4xl mx-auto space-y-8">
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900">
           Електронні листівки <br />
@@ -29,7 +26,6 @@ export default function Home() {
         </p>
       </section>
 
-      {/* Features */}
       <section className="py-16 bg-slate-50 border-y border-slate-100">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8">
           {[
@@ -63,7 +59,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-8 text-center text-slate-400 text-sm">
         © 2026 FloraSoft. Всі права захищено.
       </footer>

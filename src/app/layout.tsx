@@ -7,17 +7,15 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-// "Елегантний" теперь Marck Script
 const marckScript = Marck_Script({
   weight: "400",
   subsets: ["cyrillic", "latin"],
-  variable: "--font-playfair", // Оставляем старое имя переменной
+  variable: "--font-playfair",
 });
 
-// "Рукописный" теперь Great Vibes
 const greatVibes = Great_Vibes({
   weight: "400",
-  subsets: ["latin", "cyrillic"], // Убедись, что шрифт поддерживает кириллицу
+  subsets: ["latin", "cyrillic"],
   variable: "--font-vibes",
 });
 

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/app/api/shop/[id]/route.ts
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Shop from "@/models/Shop";
@@ -20,7 +19,7 @@ const getPublicIdFromUrl = (url: string) => {
   }
 };
 
-// --- UPDATE (PUT) ---
+// --- UPDATE ---
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -35,6 +34,19 @@ export async function PUT(
     const existingShop = await Shop.findById(id);
     if (!existingShop) {
       return NextResponse.json({ error: "Магазин не найден" }, { status: 404 });
+    }
+
+    if (slug !== existingShop.slug) {
+      const slugTaken = await Shop.findOne({ slug });
+      // Убеждаемся, что нашли не текущий же магазин
+      if (slugTaken && slugTaken._id.toString() !== id) {
+        return NextResponse.json(
+          {
+            error: "Таке посилання (slug) вже використовується іншим магазином",
+          },
+          { status: 409 },
+        );
+      }
     }
 
     if (existingShop.logoUrl && existingShop.logoUrl !== logoUrl) {
@@ -58,6 +70,12 @@ export async function PUT(
 
     return NextResponse.json(existingShop);
   } catch (error: any) {
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { error: "Дублікат даних (можливо, slug)" },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

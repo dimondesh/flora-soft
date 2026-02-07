@@ -52,10 +52,8 @@ export function DeleteShopButton({ id, name }: { id: string; name: string }) {
         </Button>
       </DialogTrigger>
 
-      {/* Адаптивная ширина и отступы */}
       <DialogContent className="sm:max-w-[425px] w-[95%] rounded-2xl p-6">
         <DialogHeader>
-          {/* MOBILE: Flex-col + Center | DESKTOP: Flex-row + Left */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -75,7 +73,6 @@ export function DeleteShopButton({ id, name }: { id: string; name: string }) {
           </div>
         </DialogHeader>
 
-        {/* DialogFooter в shadcn автоматически делает flex-col-reverse на мобильных */}
         <DialogFooter className="mt-6 gap-3 sm:gap-0">
           <DialogClose asChild>
             <Button

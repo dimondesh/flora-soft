@@ -7,10 +7,7 @@ const secretKey = process.env.JWT_SECRET || "default_secret";
 const key = new TextEncoder().encode(secretKey);
 
 export async function proxy(req: NextRequest) {
-  // 1. ЗАЩИТА API (Самое важное!)
-  // Блокируем любые действия с магазинами, если нет токена
   if (req.nextUrl.pathname.startsWith("/api/shop")) {
-    // GET разрешаем (чтобы карточки работали у клиентов)
     if (req.method === "GET") {
       return NextResponse.next();
     }
@@ -28,12 +25,10 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // 2. ЗАЩИТА АДМИНКИ (UI)
   if (req.nextUrl.pathname.startsWith("/admin")) {
     const cookie = req.cookies.get("admin_session");
     let isValid = false;
 
-    // Проверяем токен, если он есть
     if (cookie?.value) {
       try {
         await jwtVerify(cookie.value, key);
@@ -43,16 +38,11 @@ export async function proxy(req: NextRequest) {
       }
     }
 
-    // ЕСЛИ НЕ АВТОРИЗОВАН:
     if (!isValid) {
-      // А) Если мы на главной странице админки (/admin) - пропускаем,
-      // чтобы Layout показал форму входа.
       if (req.nextUrl.pathname === "/admin") {
         return NextResponse.next();
       }
 
-      // Б) Если мы на любой внутренней странице (/admin/shops и т.д.) -
-      // ВЫКИДЫВАЕМ НА ЛЕНДИНГ (или можно на /admin, как захочешь)
       return NextResponse.redirect(new URL("/", req.url));
     }
   }
@@ -61,8 +51,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/admin/:path*", // Ловим все страницы админки
-    "/api/shop/:path*", // Ловим API запросы
-  ],
+  matcher: ["/admin/:path*", "/api/shop/:path*"],
 };

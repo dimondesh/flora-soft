@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -34,11 +33,9 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 
-// --- КОНФІГУРАЦІЯ ---
-// ВИПРАВЛЕННЯ: Перетворення на Number та дефолтні значення
-const MAX_TEXT_LENGTH = Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_TEXT) || 200;
+const MAX_TEXT_LENGTH = Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_TEXT) || 168;
 const MAX_SIGNATURE_LENGTH =
-  Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_SIGN) || 20;
+  Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_SIGN) || 30;
 
 const FONTS = [
   { id: "font-inter", label: "Сучасний", class: "font-sans" },
@@ -211,6 +208,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
       setLastOrderId(data.orderId);
       setStep("success");
       setIsModalOpen(false);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       alert(e.message || "Помилка. Спробуйте ще раз.");
     } finally {
@@ -438,7 +436,9 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
               {Object.entries(DESIGNS).map(([key, data]) => (
                 <button
                   key={key}
-                  onClick={() => handleCategoryClick(key as any)}
+                  onClick={() =>
+                    handleCategoryClick(key as keyof typeof DESIGNS)
+                  }
                   className={cn(
                     "flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border transition-all",
                     category === key

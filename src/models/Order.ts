@@ -6,8 +6,8 @@ export interface IOrder extends Document {
   customerText: string;
   customerSign?: string;
   customerPhoneLast4: string;
-  designId: string; // Формат: "gentle_0" (категория + индекс)
-  fontId?: string; // Добавили поле для шрифта
+  designId: string;
+  fontId?: string;
   status: "pending" | "sent" | "failed";
   pdfUrl?: string;
   createdAt: Date;

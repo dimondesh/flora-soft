@@ -1,6 +1,6 @@
 // src/app/admin/shops/page.tsx
 import connectDB from "@/lib/db";
-import Shop from "@/models/Shop";
+import Shop, { IShop } from "@/models/Shop";
 import Order from "@/models/Order";
 import {
   Table,
@@ -41,7 +41,7 @@ export default async function AdminShopsPage({ searchParams }: PageProps) {
     .lean();
 
   const shops = await Promise.all(
-    shopsRaw.map(async (shop: any) => {
+    shopsRaw.map(async (shop: IShop) => {
       const count = await Order.countDocuments({ shopId: shop._id });
 
       return {

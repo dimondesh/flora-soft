@@ -1,5 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
 // src/app/admin/page.tsx
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/card";
 import { Download, Calendar, User } from "lucide-react";
 import connectDB from "@/lib/db";
-import Order from "@/models/Order";
-import Shop from "@/models/Shop";
+import Order, { IOrder } from "@/models/Order";
+import Shop, { IShop } from "@/models/Shop";
 import { PaginationControls } from "@/components/admin/pagination-controls";
 
 export const dynamic = "force-dynamic";
@@ -29,26 +29,25 @@ interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+type PopulatedOrder = Omit<IOrder, "shopId"> & { shopId: IShop | null };
+
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
   await connectDB();
 
-  // 1. Получаем номер страницы из URL
   const params = await searchParams;
   const page = Number(params.page) || 1;
-  const limit = 10; // Количество заказов на страницу
+  const limit = 10;
   const skip = (page - 1) * limit;
 
-  // 2. Получаем общее количество для расчета страниц
   const totalOrders = await Order.countDocuments();
   const totalPages = Math.ceil(totalOrders / limit);
 
-  // 3. Запрос с пагинацией
-  const orders = await Order.find()
+  const orders = (await Order.find()
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .populate({ path: "shopId", model: Shop })
-    .lean();
+    .lean()) as unknown as PopulatedOrder[];
 
   const hasNextPage = page < totalPages;
   const hasPrevPage = page > 1;
@@ -64,9 +63,8 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {/* --- MOBILE VIEW (CARDS) --- */}
       <div className="grid grid-cols-1 gap-4 md:hidden">
-        {orders.map((order: any) => (
+        {orders.map((order) => (
           <Card key={order._id.toString()} className="shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
@@ -130,7 +128,6 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         )}
       </div>
 
-      {/* --- DESKTOP VIEW (TABLE) --- */}
       <div className="hidden md:block rounded-md border bg-white shadow-sm">
         <Table>
           <TableHeader>
@@ -144,7 +141,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map((order: any) => (
+            {orders.map((order) => (
               <TableRow key={order._id.toString()}>
                 <TableCell className="font-medium">
                   {order.shortId || "---"}
@@ -205,7 +202,6 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         </Table>
       </div>
 
-      {/* --- PAGINATION --- */}
       {totalPages > 1 && (
         <PaginationControls
           currentPage={page}

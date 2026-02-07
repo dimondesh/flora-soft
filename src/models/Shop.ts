@@ -1,6 +1,8 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IShop extends Document {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [x: string]: any;
   slug: string;
   name: string;
   email: string;

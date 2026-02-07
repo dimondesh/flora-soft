@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 export function AdminLoginScreen() {
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // Состояние для глазика
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const router = useRouter();
@@ -46,29 +46,26 @@ export function AdminLoginScreen() {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          {/* Обертка для позиционирования иконки глаза */}
           <div className="relative">
             <Input
-              type={showPassword ? "text" : "password"} // Переключаем тип
+              type={showPassword ? "text" : "password"}
               placeholder="Пароль"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
                 setError(false);
               }}
-              // pr-10 добавляет отступ справа, чтобы текст не наезжал на глаз
               className={`h-12 text-center text-lg focus:ring-0! focus:border-pink-500! transition-all duration-300 pr-10 ${
                 error ? "border-red-500! focus-visible:ring-red-500!" : ""
               }`}
               autoFocus
             />
 
-            {/* Кнопка глаза */}
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
-              tabIndex={-1} // Чтобы Tab не останавливался на глазе (опционально)
+              tabIndex={-1}
             >
               {showPassword ? (
                 <EyeOff className="w-5 h-5" />
@@ -78,7 +75,6 @@ export function AdminLoginScreen() {
             </button>
           </div>
 
-          {/* Текст ошибки с анимацией */}
           {error && (
             <div className="flex items-center justify-center gap-2 text-red-500 text-sm font-medium animate-in slide-in-from-top-1 fade-in duration-300">
               <AlertCircle className="w-4 h-4" />

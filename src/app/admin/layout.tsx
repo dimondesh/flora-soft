@@ -1,7 +1,7 @@
 // src/app/admin/layout.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Store, LogOut } from "lucide-react";
+import { LayoutDashboard, Store } from "lucide-react";
 import { AdminLoginScreen } from "@/components/admin/login-screen";
 import { verifySession } from "@/lib/auth";
 

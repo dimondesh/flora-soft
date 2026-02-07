@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { renderToStream } from "@react-pdf/renderer";
 import connectDB from "@/lib/db";
 import Order from "@/models/Order";
-import Shop from "@/models/Shop"; // импорт нужен, даже если не используется напрямую, для populate
+import { IShop } from "@/models/Shop";
 import { CardPdfDocument } from "@/components/pdf-template";
 
 export async function GET(
@@ -14,24 +13,26 @@ export async function GET(
     const { id } = await params;
     await connectDB();
 
-    const order = await Order.findById(id).populate("shopId");
+    const order = await Order.findById(id).populate<{ shopId: IShop }>(
+      "shopId",
+    );
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Приведение типов и логика имени
-    const shop = order.shopId as any;
-    // Проверяем: существует ли магазин И включена ли опция
-    const pdfShopName = shop && shop.showNameOnPdf ? shop.name : "";
+    const shop = order.shopId;
 
-    // Генерируем поток
+    const pdfShopName =
+      shop && typeof shop === "object" && "name" in shop && shop.showNameOnPdf
+        ? shop.name
+        : "";
     const pdfStream = await renderToStream(
       <CardPdfDocument
         text={order.customerText}
         signature={order.customerSign}
         designId={order.designId}
-        shopName={pdfShopName} // <-- передаем результат проверки
+        shopName={pdfShopName}
         fontId={order.fontId}
       />,
     );
@@ -48,6 +49,7 @@ export async function GET(
         "Content-Disposition": `attachment; filename="card-${order.shortId}.pdf"`,
       },
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(error);
     return NextResponse.json({ error: error.message }, { status: 500 });

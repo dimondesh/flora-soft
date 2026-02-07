@@ -26,7 +26,7 @@ interface ShopDialogProps {
     email: string;
     logoUrl?: string;
     isActive: boolean;
-    showNameOnPdf?: boolean; // <-- типизация
+    showNameOnPdf?: boolean;
   };
 }
 
@@ -42,9 +42,8 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
   const [email, setEmail] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [isActive, setIsActive] = useState(true);
-  const [showNameOnPdf, setShowNameOnPdf] = useState(true); // <-- state
+  const [showNameOnPdf, setShowNameOnPdf] = useState(true);
 
-  // Заполнение формы при открытии
   useEffect(() => {
     if (open) {
       if (mode === "edit" && shop) {
@@ -53,14 +52,14 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
         setEmail(shop.email);
         setLogoUrl(shop.logoUrl || "");
         setIsActive(shop.isActive);
-        setShowNameOnPdf(shop.showNameOnPdf ?? true); // <-- load val
+        setShowNameOnPdf(shop.showNameOnPdf ?? true);
       } else if (mode === "create") {
         setName("");
         setSlug("");
         setEmail("");
         setLogoUrl("");
         setIsActive(true);
-        setShowNameOnPdf(true); // <-- default
+        setShowNameOnPdf(false);
       }
     }
   }, [mode, shop, open]);
@@ -127,7 +126,6 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        // Добавляем showNameOnPdf в payload
         body: JSON.stringify({
           name,
           slug,
@@ -172,7 +170,10 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] w-[95%] rounded-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        aria-describedby={undefined}
+        className="sm:max-w-[500px] w-[95%] rounded-xl max-h-[90vh] overflow-y-auto"
+      >
         <DialogHeader>
           <DialogTitle>
             {mode === "create"
@@ -182,7 +183,6 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-6 py-4">
-          {/* СЕКЦИЯ ЛОГОТИПА */}
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             <div className="shrink-0">
               <div
@@ -273,7 +273,6 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
               />
             </div>
 
-            {/* СЕТКА С НАСТРОЙКАМИ */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="slug">Slug (Посилання)</Label>
@@ -292,7 +291,6 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
                 </div>
               </div>
 
-              {/* БЛОК ЧЕКБОКСОВ */}
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="isActive">Статус магазину</Label>
@@ -315,7 +313,6 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
               </div>
             </div>
 
-            {/* Настройка PDF (на всю ширину или в сетке выше, вынес отдельно для наглядности) */}
             <div className="grid gap-2">
               <Label htmlFor="showName">Назва магазину в PDF</Label>
               <div className="flex items-center h-9 px-3 border rounded-md bg-slate-50">

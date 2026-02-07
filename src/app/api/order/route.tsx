@@ -7,13 +7,15 @@ import Order from "@/models/Order";
 import Shop from "@/models/Shop";
 import { CardPdfDocument } from "@/components/pdf-template";
 
-const MAX_TEXT_LENGTH = process.env.NEXT_PUBLIC_MAX_SYMBOLS_TEXT;
-const MAX_SIGNATURE_LENGTH = process.env.NEXT_PUBLIC_MAX_SYMBOLS_SIGN;
+export const maxDuration = 60;
 
-// Настройка Nodemailer (для MVP).
+const MAX_TEXT_LENGTH = Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_TEXT) || 200;
+const MAX_SIGNATURE_LENGTH =
+  Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_SIGN) || 20;
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.ethereal.email",
-  port: 587,
+  port: Number(process.env.SMTP_PORT) || 587,
   secure: false,
   auth: {
     user: process.env.SMTP_USER || "ethereal_user",
@@ -26,7 +28,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { shopId, text, signature, designId, fontId, phoneLast4 } = body;
 
-    // --- ВАЛИДАЦИЯ ---
     if (!text || text.trim().length === 0) {
       return NextResponse.json(
         { error: "Текст привітання обов'язковий" },
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (text.length > MAX_TEXT_LENGTH!) {
+    if (text.length > MAX_TEXT_LENGTH) {
       return NextResponse.json(
         {
           error: `Текст занадто довгий (максимум ${MAX_TEXT_LENGTH} символів)`,
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (signature && signature.length > MAX_SIGNATURE_LENGTH!) {
+    if (signature && signature.length > MAX_SIGNATURE_LENGTH) {
       return NextResponse.json(
         {
           error: `Підпис занадто довгий (максимум ${MAX_SIGNATURE_LENGTH} символів)`,
@@ -51,22 +52,18 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
-    // -----------------
 
     await connectDB();
 
-    // 1. Проверяем магазин
     const shop = await Shop.findById(shopId);
     if (!shop) {
       return NextResponse.json({ error: "Shop not found" }, { status: 404 });
     }
 
-    // 2. Генерируем короткий ID заказа
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const shortPrefix = shop.slug.substring(0, 3).toUpperCase();
     const shortId = `${shortPrefix}-${randomSuffix}`;
 
-    // 3. Сохраняем заказ в БД
     const newOrder = await Order.create({
       shopId: shop._id,
       shortId,
@@ -75,31 +72,28 @@ export async function POST(req: Request) {
       customerPhoneLast4: phoneLast4,
       designId,
       fontId: fontId || "font-inter",
-      status: "pending",
+      status: "pending", // Сначала pending
     });
 
-    // 4. Генерируем PDF
-    // ЛОГИКА: Если showNameOnPdf выключено, передаем пустую строку
-    const pdfShopName = shop.showNameOnPdf ? shop.name : "";
-
-    const pdfStream = await renderToStream(
-      <CardPdfDocument
-        text={text}
-        signature={signature}
-        designId={designId}
-        fontId={fontId}
-        shopName={pdfShopName} // <-- Используем переменную
-      />,
-    );
-
-    const chunks: Uint8Array[] = [];
-    for await (const chunk of pdfStream) {
-      chunks.push(chunk as Uint8Array);
-    }
-    const pdfBuffer = Buffer.concat(chunks);
-
-    // 5. Отправляем email
     try {
+      const pdfShopName = shop.showNameOnPdf ? shop.name : "";
+
+      const pdfStream = await renderToStream(
+        <CardPdfDocument
+          text={text}
+          signature={signature}
+          designId={designId}
+          fontId={fontId}
+          shopName={pdfShopName}
+        />,
+      );
+
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of pdfStream) {
+        chunks.push(chunk as Uint8Array);
+      }
+      const pdfBuffer = Buffer.concat(chunks);
+
       await transporter.sendMail({
         from: '"FloraSoft" <noreply@florasoft.com>',
         to: shop.email,
@@ -129,8 +123,14 @@ export async function POST(req: Request) {
 
       newOrder.status = "sent";
       await newOrder.save();
-    } catch (emailError) {
-      console.error("Помилка відправки email:", emailError);
+    } catch (backgroundError) {
+      console.error(
+        "Помилка генерації PDF або відправки Email:",
+        backgroundError,
+      );
+
+      newOrder.status = "failed";
+      await newOrder.save();
     }
 
     return NextResponse.json({
@@ -139,7 +139,7 @@ export async function POST(req: Request) {
       shortId: shortId,
     });
   } catch (error: any) {
-    console.error(error);
+    console.error("Критична помилка створення замовлення:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -10,7 +10,13 @@ import {
 import path from "path";
 import fs from "fs";
 
-// --- 1. ЗАГРУЗКА ШРИФТОВ (BASE64) ---
+let fontsLoaded = false;
+let robotoRegular: string | undefined;
+let robotoBold: string | undefined;
+let marckScript: string | undefined;
+let greatVibes: string | undefined;
+let playfair: string | undefined;
+
 const loadFont = (filename: string) => {
   try {
     const filePath = path.join(process.cwd(), "public", "fonts", filename);
@@ -18,74 +24,68 @@ const loadFont = (filename: string) => {
       const buffer = fs.readFileSync(filePath);
       return `data:font/ttf;base64,${buffer.toString("base64")}`;
     }
-    console.warn(`⚠️ Шрифт не найден по пути: ${filePath}`);
+    console.warn(`⚠️ Шрифт не знайдено за шляхом: ${filePath}`);
     return undefined;
   } catch (e) {
-    console.error(`❌ Ошибка чтения шрифта ${filename}:`, e);
+    console.error(`❌ Помилка читання шрифту ${filename}:`, e);
     return undefined;
   }
 };
 
-const robotoRegular = loadFont("Roboto-Regular.ttf");
-const robotoBold = loadFont("Roboto-Bold.ttf");
-const marckScript = loadFont("MarckScript-Regular.ttf");
-const greatVibes = loadFont("GreatVibes-Regular.ttf");
-const playfair = loadFont("PlayfairDisplay-Regular.ttf");
+const registerFonts = () => {
+  if (fontsLoaded) return;
 
-try {
-  if (robotoRegular && robotoBold) {
-    Font.register({
-      family: "Roboto",
-      fonts: [
-        { src: robotoRegular, fontWeight: 400 },
-        { src: robotoBold, fontWeight: 700 },
-      ],
-    });
-  }
+  robotoRegular = loadFont("Roboto-Regular.ttf");
+  robotoBold = loadFont("Roboto-Bold.ttf");
+  marckScript = loadFont("MarckScript-Regular.ttf");
+  greatVibes = loadFont("GreatVibes-Regular.ttf");
+  playfair = loadFont("PlayfairDisplay-Regular.ttf");
 
-  if (marckScript) {
-    Font.register({
-      family: "MarckScript",
-      src: marckScript,
-    });
-  }
-
-  if (greatVibes) {
-    Font.register({
-      family: "GreatVibes",
-      src: greatVibes,
-    });
-  } else {
-    if (marckScript) {
-      Font.register({ family: "GreatVibes", src: marckScript });
+  try {
+    if (robotoRegular && robotoBold) {
+      Font.register({
+        family: "Roboto",
+        fonts: [
+          { src: robotoRegular, fontWeight: 400 },
+          { src: robotoBold, fontWeight: 700 },
+        ],
+      });
     }
-  }
 
-  if (playfair) {
-    Font.register({ family: "Playfair", src: playfair });
-  }
-} catch (error) {
-  console.error("🔥 Ошибка регистрации шрифтов:", error);
-}
+    if (marckScript) {
+      Font.register({ family: "MarckScript", src: marckScript });
+    }
 
-// --- КОНСТАНТИ РОЗМІРІВ ---
-// 1mm = 2.83465pt
+    if (greatVibes) {
+      Font.register({ family: "GreatVibes", src: greatVibes });
+    } else {
+      // Fallback
+      if (marckScript) {
+        Font.register({ family: "GreatVibes", src: marckScript });
+      }
+    }
+
+    if (playfair) {
+      Font.register({ family: "Playfair", src: playfair });
+    }
+
+    fontsLoaded = true;
+    console.log("✅ Шрифти успішно зареєстровані");
+  } catch (error) {
+    console.error("🔥 Помилка реєстрації шрифтів:", error);
+  }
+};
+
+registerFonts();
+
 const MM_TO_PT = 2.83465;
-
-// A6 (105mm x 148mm) + Bleed (3mm з кожного боку)
-// Ширина: 105 + 3 + 3 = 111mm
-// Висота: 148 + 3 + 3 = 154mm
 const PAGE_WIDTH = 111 * MM_TO_PT;
 const PAGE_HEIGHT = 154 * MM_TO_PT;
-
-// Відступ безпечної зони від краю PDF файлу
-// 3mm (виліт) + 7mm (безпечна зона) = 10mm
 const CONTENT_PADDING = 10 * MM_TO_PT;
 
-// --- 2. СТИЛІ ---
 const styles = StyleSheet.create({
   page: {
-    padding: CONTENT_PADDING, // 10mm від краю фізичного файлу
+    padding: CONTENT_PADDING,
     flexDirection: "column",
   },
   container: {
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     marginTop: "auto",
     paddingTop: 10,
     width: "100%",
-    alignItems: "flex-end", // Выравниваем вправо
+    alignItems: "flex-end",
   },
   signature: {
     fontSize: 16,
@@ -219,7 +219,6 @@ export const CardPdfDocument = ({
         style={[styles.page, { backgroundColor: config.color }]}
       >
         <View style={styles.container}>
-          {/* Верх: Картинка */}
           <View style={styles.imageSection}>
             <Image
               src={config.url}
@@ -227,13 +226,11 @@ export const CardPdfDocument = ({
             />
           </View>
 
-          {/* Середина: Текст (сверху) и Подпись (снизу) */}
           <View style={styles.contentSection}>
             <Text style={[styles.text, { fontFamily: activeFontFamily }]}>
               {text}
             </Text>
 
-            {/* Подпись прижимается к низу секции */}
             {signature && (
               <View style={styles.signatureWrapper}>
                 <Text
@@ -245,7 +242,6 @@ export const CardPdfDocument = ({
             )}
           </View>
 
-          {/* Низ: Брендинг магазина */}
           <View style={styles.footer}>
             <Text style={styles.brandName}>{shopName}</Text>
           </View>
