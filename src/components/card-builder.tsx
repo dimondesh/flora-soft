@@ -35,6 +35,11 @@ import {
 } from "@/components/ui/carousel";
 
 // --- КОНФІГУРАЦІЯ ---
+// ВИПРАВЛЕННЯ: Перетворення на Number та дефолтні значення
+const MAX_TEXT_LENGTH = Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_TEXT) || 200;
+const MAX_SIGNATURE_LENGTH =
+  Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_SIGN) || 20;
+
 const FONTS = [
   { id: "font-inter", label: "Сучасний", class: "font-sans" },
   { id: "font-playfair", label: "Елегантний", class: "font-serif" },
@@ -202,24 +207,30 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error(data.error || "Failed");
       setLastOrderId(data.orderId);
       setStep("success");
       setIsModalOpen(false);
-    } catch (e) {
-      alert("Помилка. Спробуйте ще раз.");
+    } catch (e: any) {
+      alert(e.message || "Помилка. Спробуйте ще раз.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const cleanValue = stripEmojis(e.target.value);
+    let cleanValue = stripEmojis(e.target.value);
+    if (cleanValue.length > MAX_TEXT_LENGTH) {
+      cleanValue = cleanValue.slice(0, MAX_TEXT_LENGTH);
+    }
     setText(cleanValue);
   };
 
   const handleSignatureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cleanValue = stripEmojis(e.target.value);
+    let cleanValue = stripEmojis(e.target.value);
+    if (cleanValue.length > MAX_SIGNATURE_LENGTH) {
+      cleanValue = cleanValue.slice(0, MAX_SIGNATURE_LENGTH);
+    }
     setSignature(cleanValue);
   };
 
@@ -385,7 +396,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                               <div className="w-full text-right mt-auto pt-2">
                                 <p
                                   className={cn(
-                                    "text-xl opacity-90 select-none",
+                                    "text-md opacity-90 select-none",
                                     variant.text,
                                     selectedFont.class,
                                   )}
@@ -447,14 +458,29 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
 
           {/* Текст */}
           <div className="space-y-3">
-            <Label className="text-slate-400 uppercase text-[10px] font-extrabold tracking-widest">
-              2. Текст привітання
-            </Label>
+            <div className="flex justify-between items-baseline">
+              <Label className="text-slate-400 uppercase text-[10px] font-extrabold tracking-widest">
+                2. Текст привітання
+              </Label>
+              <span
+                className={cn(
+                  "text-[10px] font-medium transition-colors",
+                  text.length >= MAX_TEXT_LENGTH
+                    ? "text-red-500"
+                    : "text-slate-400",
+                )}
+              >
+                {text.length}/{MAX_TEXT_LENGTH}
+              </span>
+            </div>
             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
               {TEXT_HINTS.map((hint) => (
                 <button
                   key={hint}
-                  onClick={() => setText(hint)}
+                  onClick={() => {
+                    // Перевіряємо, чи влізе підказка
+                    if (hint.length <= MAX_TEXT_LENGTH) setText(hint);
+                  }}
                   className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-600 whitespace-nowrap hover:border-pink-300 transition-colors"
                 >
                   {hint}
@@ -464,6 +490,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
             <Textarea
               value={text}
               onChange={handleTextChange}
+              maxLength={MAX_TEXT_LENGTH}
               placeholder="Напишіть кілька теплих слів…"
               className="bg-white focus:border-pink-500! duration-300 transition-all rounded-2xl min-h-[140px] text-base p-4 focus:ring-0!"
             />
@@ -471,12 +498,25 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
 
           {/* Підпис */}
           <div className="space-y-3">
-            <Label className="text-slate-400 uppercase text-[10px] font-extrabold tracking-widest">
-              3. Підпис
-            </Label>
+            <div className="flex justify-between items-baseline">
+              <Label className="text-slate-400 uppercase text-[10px] font-extrabold tracking-widest">
+                3. Підпис
+              </Label>
+              <span
+                className={cn(
+                  "text-[10px] font-medium transition-colors",
+                  signature.length >= MAX_SIGNATURE_LENGTH
+                    ? "text-red-500"
+                    : "text-slate-400",
+                )}
+              >
+                {signature.length}/{MAX_SIGNATURE_LENGTH}
+              </span>
+            </div>
             <Input
               value={signature}
               onChange={handleSignatureChange}
+              maxLength={MAX_SIGNATURE_LENGTH}
               placeholder="Ваше ім'я"
               className="bg-white focus:border-pink-500! transition-all duration-300 focus:ring-0! rounded-2xl h-14 px-4 text-base"
             />

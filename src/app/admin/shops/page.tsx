@@ -26,7 +26,6 @@ interface PageProps {
 export default async function AdminShopsPage({ searchParams }: PageProps) {
   await connectDB();
 
-  // 1. Пагинация
   const params = await searchParams;
   const page = Number(params.page) || 1;
   const limit = 10; // Магазинов на странице
@@ -35,14 +34,12 @@ export default async function AdminShopsPage({ searchParams }: PageProps) {
   const totalShops = await Shop.countDocuments();
   const totalPages = Math.ceil(totalShops / limit);
 
-  // 2. Получаем только нужную часть магазинов
   const shopsRaw = await Shop.find()
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean();
 
-  // 3. Подсчитываем заказы только для отображаемых магазинов
   const shops = await Promise.all(
     shopsRaw.map(async (shop: any) => {
       const count = await Order.countDocuments({ shopId: shop._id });

@@ -7,6 +7,9 @@ import Order from "@/models/Order";
 import Shop from "@/models/Shop";
 import { CardPdfDocument } from "@/components/pdf-template";
 
+const MAX_TEXT_LENGTH = process.env.NEXT_PUBLIC_MAX_SYMBOLS_TEXT;
+const MAX_SIGNATURE_LENGTH = process.env.NEXT_PUBLIC_MAX_SYMBOLS_SIGN;
+
 // Настройка Nodemailer (для MVP).
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.ethereal.email",
@@ -22,6 +25,33 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { shopId, text, signature, designId, fontId, phoneLast4 } = body;
+
+    // --- ВАЛИДАЦИЯ ---
+    if (!text || text.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Текст привітання обов'язковий" },
+        { status: 400 },
+      );
+    }
+
+    if (text.length > MAX_TEXT_LENGTH!) {
+      return NextResponse.json(
+        {
+          error: `Текст занадто довгий (максимум ${MAX_TEXT_LENGTH} символів)`,
+        },
+        { status: 400 },
+      );
+    }
+
+    if (signature && signature.length > MAX_SIGNATURE_LENGTH!) {
+      return NextResponse.json(
+        {
+          error: `Підпис занадто довгий (максимум ${MAX_SIGNATURE_LENGTH} символів)`,
+        },
+        { status: 400 },
+      );
+    }
+    // -----------------
 
     await connectDB();
 
