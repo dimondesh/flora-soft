@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { renderToStream } from "@react-pdf/renderer";
 import connectDB from "@/lib/db";
 import Order from "@/models/Order";
-import { IShop } from "@/models/Shop";
+import Shop, { IShop } from "@/models/Shop";
 import { CardPdfDocument } from "@/components/pdf-template";
 
 export async function GET(

@@ -1,3 +1,4 @@
+// src/app/api/order/route.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { renderToStream } from "@react-pdf/renderer";
@@ -13,14 +14,23 @@ const MAX_TEXT_LENGTH = Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_TEXT) || 200;
 const MAX_SIGNATURE_LENGTH =
   Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_SIGN) || 20;
 
+const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
+const IS_SECURE = SMTP_PORT === 465;
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.ethereal.email",
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
+  port: SMTP_PORT,
+  secure: IS_SECURE,
   auth: {
     user: process.env.SMTP_USER || "ethereal_user",
     pass: process.env.SMTP_PASS || "ethereal_pass",
   },
+  tls: {
+    ciphers: "SSLv3",
+    rejectUnauthorized: false,
+  },
+  connectionTimeout: 20000,
+  socketTimeout: 20000,
 });
 
 export async function POST(req: Request) {
@@ -72,7 +82,7 @@ export async function POST(req: Request) {
       customerPhoneLast4: phoneLast4,
       designId,
       fontId: fontId || "font-inter",
-      status: "pending", // Сначала pending
+      status: "pending",
     });
 
     try {
