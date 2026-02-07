@@ -14,7 +14,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Loader2, X, Pencil, Image as ImageIcon } from "lucide-react";
+import {
+  Plus,
+  Loader2,
+  X,
+  Pencil,
+  Image as ImageIcon,
+  AlertCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ShopDialogProps {
@@ -36,7 +43,8 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Данные формы
+  const [error, setError] = useState<string | null>(null);
+
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [email, setEmail] = useState("");
@@ -46,6 +54,8 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
 
   useEffect(() => {
     if (open) {
+      setError(null);
+
       if (mode === "edit" && shop) {
         setName(shop.name);
         setSlug(shop.slug);
@@ -84,6 +94,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
     if (!file) return;
 
     setIsUploading(true);
+    setError(null);
     const formData = new FormData();
     formData.append("file", file);
 
@@ -99,7 +110,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
       setLogoUrl(data.url);
     } catch (error) {
       console.error(error);
-      alert("Не вдалося завантажити зображення");
+      setError("Не вдалося завантажити зображення");
     } finally {
       setIsUploading(false);
       e.target.value = "";
@@ -113,6 +124,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
       let url = "/api/shop";
@@ -138,7 +150,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
 
       if (!res.ok) {
         const err = await res.json();
-        alert(err.error || "Ошибка");
+        setError(err.error || "Сталася помилка при збереженні");
         return;
       }
 
@@ -146,7 +158,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert("Ошибка сети");
+      setError("Помилка мережі. Спробуйте ще раз.");
     } finally {
       setIsSubmitting(false);
     }
@@ -283,9 +295,17 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
                   <Input
                     id="slug"
                     value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
+                    onChange={(e) => {
+                      setSlug(e.target.value);
+                      setError(null);
+                    }}
                     placeholder="kvitka-store"
-                    className="pl-6 focus:ring-0! focus:border-pink-500! transition-all duration-300"
+                    className={cn(
+                      "pl-6 focus:ring-0! transition-all duration-300",
+                      error && error.includes("slug")
+                        ? "border-red-500 focus:border-red-500!"
+                        : "focus:border-pink-500!",
+                    )}
                     required
                   />
                 </div>
@@ -345,6 +365,13 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
               />
             </div>
           </div>
+
+          {error && (
+            <div className="rounded-lg bg-red-50 border border-red-200 p-3 flex items-start gap-3 animate-in fade-in zoom-in-95 duration-200">
+              <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+              <p className="text-sm text-red-600 font-medium">{error}</p>
+            </div>
+          )}
 
           <DialogFooter className="flex-col-reverse sm:flex-row gap-2 mt-2">
             <Button
