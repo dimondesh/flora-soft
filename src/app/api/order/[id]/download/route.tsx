@@ -13,20 +13,19 @@ export async function GET(
     const { id } = await params;
     await connectDB();
 
-    const order = await Order.findById(id).populate<{ shopId: IShop }>(
-      "shopId",
-    );
+    const order = await Order.findById(id).populate<{ shopId: IShop }>({
+      path: "shopId",
+      model: Shop,
+    });
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    const shop = order.shopId;
+    const shop = order.shopId as unknown as IShop;
 
-    const pdfShopName =
-      shop && typeof shop === "object" && "name" in shop && shop.showNameOnPdf
-        ? shop.name
-        : "";
+    const pdfShopName = shop && shop.showNameOnPdf ? shop.name : "";
+
     const pdfStream = await renderToStream(
       <CardPdfDocument
         text={order.customerText}
@@ -51,7 +50,7 @@ export async function GET(
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error(error);
+    console.error("Download error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
