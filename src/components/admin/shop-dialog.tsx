@@ -52,10 +52,12 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
   const [isActive, setIsActive] = useState(true);
   const [showNameOnPdf, setShowNameOnPdf] = useState(true);
 
+  const isValid =
+    name.trim().length > 0 && slug.trim().length > 0 && email.trim().length > 0;
+
   useEffect(() => {
     if (open) {
       setError(null);
-
       if (mode === "edit" && shop) {
         setName(shop.name);
         setSlug(shop.slug);
@@ -123,6 +125,8 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValid) return; // Дополнительная защита
+
     setIsSubmitting(true);
     setError(null);
 
@@ -274,7 +278,9 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
 
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Назва</Label>
+              <Label htmlFor="name">
+                Назва <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="name"
                 value={name}
@@ -287,7 +293,9 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="slug">Slug (Посилання)</Label>
+                <Label htmlFor="slug">
+                  Slug (Посилання) <span className="text-red-500">*</span>
+                </Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
                     /
@@ -353,7 +361,9 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="email">Email для замовлень</Label>
+              <Label htmlFor="email">
+                Email для замовлень <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -384,7 +394,7 @@ export function ShopDialog({ mode, shop }: ShopDialogProps) {
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || isUploading}
+              disabled={isSubmitting || isUploading || !isValid}
               className="bg-slate-900 text-white hover:bg-slate-800 w-full sm:w-auto"
             >
               {isSubmitting && (
