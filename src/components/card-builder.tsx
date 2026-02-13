@@ -77,7 +77,7 @@ const DESIGNS = {
         text: "text-[#795548]",
       },
       {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/2_edited_zx67ff.png",
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770948559/2_edited_1_a08gir.png",
         bg: "bg-[#fff8e1]",
         text: "text-[#6D5D6E]",
       },

@@ -143,7 +143,6 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 14,
     textAlign: "center",
-    color: "#334155",
     lineHeight: 1.5,
   },
   signatureWrapper: {
@@ -155,7 +154,6 @@ const styles = StyleSheet.create({
   signature: {
     fontSize: 16,
     textAlign: "right",
-    color: "#334155",
     opacity: 0.9,
   },
   footer: {
@@ -197,7 +195,7 @@ const DESIGNS: Record<string, DesignConfig> = {
     color: "#795548",
   },
   fun_2: {
-    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/2_edited_zx67ff.png",
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770948559/2_edited_1_a08gir.png",
     color: "#6D5D6E",
   },
   fun_3: {
@@ -369,7 +367,7 @@ export const CardPdfDocument = ({
           {/* 1. ФОН (Найнижчий шар) */}
           <Image
             src={config.url}
-            style={[styles.backgroundImage, { backgroundColor: config.color }]}
+            style={[styles.backgroundImage]} // Прибрав backgroundColor, він тут не критичний, якщо картинка завантажується
           />
 
           {/* 2. МІТКИ РІЗУ */}
@@ -378,17 +376,24 @@ export const CardPdfDocument = ({
           {/* 3. КОНТЕНТ (Верхній шар, абсолютне позиціювання) */}
           <View style={styles.safeArea}>
             <View style={styles.textContainer}>
-              <Text style={[styles.text, { fontFamily: activeFontFamily }]}>
+              {/* ДОДАНО: color: config.color */}
+              <Text
+                style={[
+                  styles.text,
+                  { fontFamily: activeFontFamily, color: config.color },
+                ]}
+              >
                 {text}
               </Text>
             </View>
 
             {signature && (
               <View style={styles.signatureWrapper}>
+                {/* ДОДАНО: color: config.color */}
                 <Text
                   style={[
                     styles.signature,
-                    { fontFamily: signatureFontFamily },
+                    { fontFamily: signatureFontFamily, color: config.color },
                   ]}
                 >
                   {signature}
