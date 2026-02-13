@@ -110,14 +110,9 @@ const styles = StyleSheet.create({
     width: FULL_WIDTH,
     height: FULL_HEIGHT,
     position: "relative",
-    // Фон задається динамічно через inline style
   },
   backgroundImage: {
     position: "absolute",
-    top: BLEED,
-    left: BLEED,
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
     objectFit: "fill",
   },
   safeArea: {
@@ -173,8 +168,9 @@ const styles = StyleSheet.create({
 
 interface DesignConfig {
   url: string;
-  color: string; // Колір тексту
-  bgColor: string; // Колір фону для вильотів (bleed)
+  color: string;
+  bgColor: string;
+  stretchToBleed?: boolean; // Флаг для растягивания на всю область с вылетами
 }
 
 const DESIGNS: Record<string, DesignConfig> = {
@@ -232,6 +228,7 @@ const DESIGNS: Record<string, DesignConfig> = {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/1_dygtar.png",
     color: "#4E342E",
     bgColor: "#FDF4F5",
+    stretchToBleed: true, // Включаем растягивание для этого дизайна
   },
   warm_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/2_yqzcqg.png",
@@ -369,12 +366,30 @@ export const CardPdfDocument = ({
     if (fontId === "font-playfair") activeFontFamily = "Times-Roman";
   }
 
+  // Логика позиционирования и размера картинки
+  const imageStyle = config.stretchToBleed
+    ? {
+        top: 0,
+        left: 0,
+        width: FULL_WIDTH,
+        height: FULL_HEIGHT,
+      }
+    : {
+        top: BLEED,
+        left: BLEED,
+        width: CARD_WIDTH,
+        height: CARD_HEIGHT,
+      };
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Використовуємо bgColor для фону вильотів */}
+        {/* Background Color применяется к Wrapper как заливка под вылеты */}
         <View style={[styles.wrapper, { backgroundColor: config.bgColor }]}>
-          <Image src={config.url} style={styles.backgroundImage} />
+          <Image
+            src={config.url}
+            style={[styles.backgroundImage, imageStyle]}
+          />
           <CropMarks />
 
           <View style={styles.safeArea}>
@@ -382,7 +397,6 @@ export const CardPdfDocument = ({
               <Text
                 style={[
                   styles.text,
-                  // Використовуємо color для тексту
                   { fontFamily: activeFontFamily, color: config.color },
                 ]}
               >
@@ -395,7 +409,6 @@ export const CardPdfDocument = ({
                 <Text
                   style={[
                     styles.signature,
-                    // Використовуємо color для підпису
                     { fontFamily: signatureFontFamily, color: config.color },
                   ]}
                 >
