@@ -53,43 +53,43 @@ const DESIGNS = {
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/1_naahmv.png",
         bg: "bg-[#fff0f5]",
-        text: "text-rose-900",
+        text: "text-[#7D5A50]",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944120/2_edited_w7iij8.png",
         bg: "bg-[#fff5f5]",
-        text: "text-rose-800",
+        text: "text-[#5E4B4B]",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/3_sgizoy.png",
         bg: "bg-[#fff5f5]",
-        text: "text-rose-800",
+        text: "text-[#4A5D4E]",
       },
     ],
   },
   fun: {
-    label: "Радісно",
+    label: "Свято",
     icon: Smile,
     variants: [
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/1_ahpnjm.png",
         bg: "bg-[#fef9c3]",
-        text: "text-orange-900",
+        text: "text-[#795548]",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/2_edited_zx67ff.png",
         bg: "bg-[#fff8e1]",
-        text: "text-amber-900",
+        text: "text-[#6D5D6E]",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944218/3_edited_ejmimb.png",
         bg: "bg-[#fff8e1]",
-        text: "text-amber-900",
+        text: "text-[#B71C1C]",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944220/4_avhwvw.png",
         bg: "bg-[#fff8e1]",
-        text: "text-amber-900",
+        text: "text-[#8E2424]",
       },
     ],
   },
@@ -100,43 +100,43 @@ const DESIGNS = {
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943983/1_rxvdse.png",
         bg: "bg-[#f8fafc]",
-        text: "text-slate-800",
+        text: "text-[#8D6E63]",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/2_manpil.png",
         bg: "bg-[#ffffff]",
-        text: "text-slate-900",
+        text: "text-[#705C5E]",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/3_o0xjro.png",
         bg: "bg-[#ffffff]",
-        text: "text-slate-900",
+        text: "text-[#5D4037]",
       },
     ],
   },
   warm: {
-    label: "Затишок",
+    label: "Тепло",
     icon: Sparkles,
     variants: [
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/1_dygtar.png",
         bg: "bg-[#f0f8ff]",
-        text: "text-indigo-900",
+        text: "text-[#4E342E]",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/2_yqzcqg.png",
         bg: "bg-[#f0f8ff]",
-        text: "text-violet-900",
+        text: "text-[#5B6346]",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/3_ifdl3n.png",
         bg: "bg-[#f0f8ff]",
-        text: "text-indigo-800",
+        text: "text-[#6B4F7E]",
       },
       {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/4_edited_qfsn7d.png",
         bg: "bg-[#f0f8ff]",
-        text: "text-violet-900",
+        text: "text-[#603813]",
       },
     ],
   },
@@ -179,7 +179,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
   const [category, setCategory] = useState<keyof typeof DESIGNS>("gentle");
   const [variantIndex, setVariantIndex] = useState(0);
 
-  const [selectedFont, setSelectedFont] = useState(FONTS[0]);
+  const [selectedFont, setSelectedFont] = useState(FONTS[1]);
   const [text, setText] = useState("");
   const [signature, setSignature] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);

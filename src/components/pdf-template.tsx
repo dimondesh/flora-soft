@@ -13,7 +13,7 @@ import {
 import path from "path";
 import fs from "fs";
 
-// --- Font Loading Logic (Same as before) ---
+// --- Font Loading Logic ---
 let fontsLoaded = false;
 let robotoRegular: string | undefined;
 let robotoBold: string | undefined;
@@ -36,13 +36,15 @@ const loadFont = (filename: string) => {
 
 const registerFonts = () => {
   if (fontsLoaded) return;
-  robotoRegular = loadFont("Roboto-Regular.ttf");
-  robotoBold = loadFont("Roboto-Bold.ttf");
-  marckScript = loadFont("MarckScript-Regular.ttf");
-  greatVibes = loadFont("GreatVibes-Regular.ttf");
-  playfair = loadFont("PlayfairDisplay-Regular.ttf");
 
+  // Спробуємо завантажити шрифти
   try {
+    robotoRegular = loadFont("Roboto-Regular.ttf");
+    robotoBold = loadFont("Roboto-Bold.ttf");
+    marckScript = loadFont("MarckScript-Regular.ttf");
+    greatVibes = loadFont("GreatVibes-Regular.ttf");
+    playfair = loadFont("PlayfairDisplay-Regular.ttf");
+
     if (robotoRegular && robotoBold) {
       Font.register({
         family: "Roboto",
@@ -59,9 +61,12 @@ const registerFonts = () => {
       Font.register({ family: "GreatVibes", src: marckScript });
     }
     if (playfair) Font.register({ family: "Playfair", src: playfair });
-    fontsLoaded = true;
+
+    // Вважаємо, що шрифти завантажені, якщо хоча б основний є
+    if (robotoRegular) fontsLoaded = true;
   } catch (error) {
     console.error("Font registration error:", error);
+    // fontsLoaded залишається false
   }
 };
 
@@ -87,11 +92,11 @@ const FULL_WIDTH = CARD_WIDTH + BLEED * 2; // 111mm
 const FULL_HEIGHT = CARD_HEIGHT + BLEED * 2; // 154mm
 
 // Crop Marks Configuration
-const CROP_OFFSET = 3 * MM_TO_PT; // Відступ мітки від кута листівки
-const CROP_LENGTH = 5 * MM_TO_PT; // Довжина лінії різу
+const CROP_OFFSET = 3 * MM_TO_PT;
+const CROP_LENGTH = 5 * MM_TO_PT;
 
 // Safe Area (Padding inside the clean card)
-const SAFE_PADDING = 8 * MM_TO_PT; // 8mm from edge
+const SAFE_PADDING = 8 * MM_TO_PT;
 
 // Styles
 const styles = StyleSheet.create({
@@ -103,32 +108,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Контейнер, який центрує все на А4
+  // Контейнер (Wrapper) тепер просто задає розміри і є точкою відліку (relative)
   wrapper: {
     width: FULL_WIDTH,
     height: FULL_HEIGHT,
     position: "relative",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
   },
-  // Фон (картинка з вильотами)
+  // Фон (картинка) - абсолютне позиціювання
   backgroundImage: {
     position: "absolute",
     top: 0,
     left: 0,
     width: FULL_WIDTH,
     height: FULL_HEIGHT,
-    objectFit: "cover", // Заповнюємо весь простір вильотів
+    objectFit: "cover",
   },
-  // Безпечна зона для тексту (всередині чистого розміру)
+  // Безпечна зона - ТАКОЖ абсолютне позиціювання, щоб гарантовано бути зверху
   safeArea: {
+    position: "absolute",
+    top: BLEED + SAFE_PADDING, // Зсув зверху: 3мм (блід) + 8мм (відступ)
+    left: BLEED + SAFE_PADDING, // Зсув зліва
     width: CARD_WIDTH - SAFE_PADDING * 2,
     height: CARD_HEIGHT - SAFE_PADDING * 2,
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    zIndex: 10,
   },
   textContainer: {
     flexGrow: 1,
@@ -165,85 +169,74 @@ const styles = StyleSheet.create({
     color: "#94a3b8",
     textTransform: "uppercase",
     letterSpacing: 2,
-    fontFamily: "Roboto",
+    fontFamily: "Roboto", // Fallback буде оброблено в компоненті
     fontWeight: 700,
-  },
-  // Шар для міток різу (поверх усього)
-  cropLayer: {
-    position: "absolute",
-    top: -20 * MM_TO_PT, // Виходимо за межі картки
-    left: -20 * MM_TO_PT,
-    width: FULL_WIDTH + 40 * MM_TO_PT,
-    height: FULL_HEIGHT + 40 * MM_TO_PT,
-    pointerEvents: "none",
   },
 });
 
 interface DesignConfig {
   url: string;
-  color: string; // Fallback color
+  color: string;
 }
 
-// TODO: Замініть URL на реальні, коли завантажите нові фони 1240x1748
 const DESIGNS: Record<string, DesignConfig> = {
   gentle_1: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/1_naahmv.png",
-    color: "#fff0f5",
+    color: "#7D5A50",
   },
   gentle_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944120/2_edited_w7iij8.png",
-    color: "#fff5f5",
+    color: "#5E4B4B",
   },
   gentle_3: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/3_sgizoy.png",
-    color: "#fff5f5",
+    color: "#4A5D4E",
   },
   fun_1: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/1_ahpnjm.png",
-    color: "#fef9c3",
+    color: "#795548",
   },
   fun_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/2_edited_zx67ff.png",
-    color: "#fff8e1",
+    color: "#6D5D6E",
   },
   fun_3: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944218/3_edited_ejmimb.png",
-    color: "#fff8e1",
+    color: "#B71C1C",
   },
   fun_4: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944220/4_avhwvw.png",
-    color: "#fff8e1",
+    color: "#8E2424",
   },
   minimal_1: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943983/1_rxvdse.png",
-    color: "#f8fafc",
+    color: "#8D6E63",
   },
   minimal_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/2_manpil.png",
-    color: "#ffffff",
+    color: "#705C5E",
   },
   minimal_3: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/3_o0xjro.png",
-    color: "#ffffff",
+    color: "#5D4037",
   },
   warm_1: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/1_dygtar.png",
-    color: "#f0f8ff",
+    color: "#4E342E",
   },
   warm_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/2_yqzcqg.png",
-    color: "#f0f8ff",
+    color: "#5B6346",
   },
   warm_3: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/3_ifdl3n.png",
-    color: "#f0f8ff",
+    color: "#6B4F7E",
   },
   warm_4: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/4_edited_qfsn7d.png",
-    color: "#f0f8ff",
+    color: "#603813",
   },
 };
-
 interface PdfProps {
   text: string;
   signature?: string;
@@ -254,16 +247,11 @@ interface PdfProps {
 
 // Компонент для малювання міток різу
 const CropMarks = () => {
-  // Координати кутів чистого формату відносно центру (враховуючи offset шару cropLayer)
-  // Центр cropLayer співпадає з центром картки
-
-  // Координати кутів обрізного формату (Clean Size) всередині FULL_WIDTH/HEIGHT
   const left = BLEED;
   const top = BLEED;
   const right = FULL_WIDTH - BLEED;
   const bottom = FULL_HEIGHT - BLEED;
 
-  // Абсолютні координати в Svg, який покриває весь Wrapper
   return (
     <Svg
       style={{
@@ -291,7 +279,6 @@ const CropMarks = () => {
         stroke="black"
         strokeWidth={0.5}
       />
-
       {/* Top Right */}
       <Line
         x1={right}
@@ -309,7 +296,6 @@ const CropMarks = () => {
         stroke="black"
         strokeWidth={0.5}
       />
-
       {/* Bottom Left */}
       <Line
         x1={left}
@@ -327,7 +313,6 @@ const CropMarks = () => {
         stroke="black"
         strokeWidth={0.5}
       />
-
       {/* Bottom Right */}
       <Line
         x1={right}
@@ -356,26 +341,41 @@ export const CardPdfDocument = ({
   fontId,
   shopName,
 }: PdfProps) => {
-  const config = DESIGNS[designId] || DESIGNS["gentle_0"];
-  let activeFontFamily = "Roboto";
-  if (fontId === "font-playfair") activeFontFamily = "MarckScript";
-  if (fontId === "font-vibes") activeFontFamily = "GreatVibes";
+  const config = DESIGNS[designId] || DESIGNS["gentle_1"];
+
+  // Логіка вибору шрифту з запасним варіантом (Helvetica), якщо файли не завантажились
+  let activeFontFamily = fontsLoaded ? "Roboto" : "Helvetica";
+  let signatureFontFamily = fontsLoaded ? "Roboto" : "Helvetica";
+
+  if (fontsLoaded) {
+    if (fontId === "font-playfair") {
+      activeFontFamily = "MarckScript";
+      signatureFontFamily = "MarckScript";
+    }
+    if (fontId === "font-vibes") {
+      activeFontFamily = "GreatVibes";
+      signatureFontFamily = "GreatVibes";
+    }
+  } else {
+    // Fallback для стилів, якщо файлів немає
+    if (fontId === "font-playfair") activeFontFamily = "Times-Roman";
+  }
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Центральний контейнер з розмірами листівки + бліди */}
+        {/* Центральний контейнер (Wrapper) */}
         <View style={styles.wrapper}>
-          {/* Фон - заповнює все, включаючи вильоти */}
+          {/* 1. ФОН (Найнижчий шар) */}
           <Image
             src={config.url}
             style={[styles.backgroundImage, { backgroundColor: config.color }]}
           />
 
-          {/* Мітки різу */}
+          {/* 2. МІТКИ РІЗУ */}
           <CropMarks />
 
-          {/* Безпечна зона для контенту */}
+          {/* 3. КОНТЕНТ (Верхній шар, абсолютне позиціювання) */}
           <View style={styles.safeArea}>
             <View style={styles.textContainer}>
               <Text style={[styles.text, { fontFamily: activeFontFamily }]}>
@@ -386,7 +386,10 @@ export const CardPdfDocument = ({
             {signature && (
               <View style={styles.signatureWrapper}>
                 <Text
-                  style={[styles.signature, { fontFamily: activeFontFamily }]}
+                  style={[
+                    styles.signature,
+                    { fontFamily: signatureFontFamily },
+                  ]}
                 >
                   {signature}
                 </Text>
@@ -394,7 +397,15 @@ export const CardPdfDocument = ({
             )}
 
             <View style={styles.footer}>
-              <Text style={styles.brandName}>{shopName}</Text>
+              {/* Використовуємо Helvetica для футера, якщо Roboto не завантажився */}
+              <Text
+                style={[
+                  styles.brandName,
+                  { fontFamily: fontsLoaded ? "Roboto" : "Helvetica" },
+                ]}
+              >
+                {shopName}
+              </Text>
             </View>
           </View>
         </View>
