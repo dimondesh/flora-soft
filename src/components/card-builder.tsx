@@ -1,3 +1,4 @@
+// src/components/card-builder.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -43,40 +44,52 @@ const FONTS = [
   { id: "font-vibes", label: "Рукописний", class: "font-cursive" },
 ];
 
+// Оновлені дизайни згідно з pdf-template.tsx
 const DESIGNS = {
   gentle: {
     label: "Ніжно",
     icon: Heart,
     variants: [
       {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770203577/1-12574_watercolor-flower-png-free-flower-pink-vector-png_kyet2r.png",
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/1_naahmv.png",
         bg: "bg-[#fff0f5]",
         text: "text-rose-900",
-        fit: "object-contain",
       },
       {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770203578/1000_F_612026850_6JlSZVdzOqa3sPiePleg5nqMtBVYWuib_ul4ah2.png",
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944120/2_edited_w7iij8.png",
         bg: "bg-[#fff5f5]",
         text: "text-rose-800",
-        fit: "object-contain",
+      },
+      {
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/3_sgizoy.png",
+        bg: "bg-[#fff5f5]",
+        text: "text-rose-800",
       },
     ],
   },
   fun: {
-    label: "Тепло",
+    label: "Радісно",
     icon: Smile,
     variants: [
       {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770207274/Gemini_Generated_Image_40q4kt40q4kt40q4_prll00.png",
-        bg: "bg-yellow-100/50",
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/1_ahpnjm.png",
+        bg: "bg-[#fef9c3]",
         text: "text-orange-900",
-        fit: "object-cover",
       },
       {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770207273/Gemini_Generated_Image_30blr30blr30blr3_u4r5wx.png",
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/2_edited_zx67ff.png",
         bg: "bg-[#fff8e1]",
         text: "text-amber-900",
-        fit: "object-cover",
+      },
+      {
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944218/3_edited_ejmimb.png",
+        bg: "bg-[#fff8e1]",
+        text: "text-amber-900",
+      },
+      {
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944220/4_avhwvw.png",
+        bg: "bg-[#fff8e1]",
+        text: "text-amber-900",
       },
     ],
   },
@@ -85,34 +98,45 @@ const DESIGNS = {
     icon: PenTool,
     variants: [
       {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770206593/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTEyL3Jhd3BpeGVsb2ZmaWNlMTFfc2ltcGxlX3dhdGVyY29sb3JfcHJpbnRfb2Zfd2hpdGVfYW5kX2dyZWVuX3dlZF9hYWQ3ZmY3MC01MTJiLTQ3YjUtYjkyZS03MTM5N2ExOTRjYTEucG5n_1_bvjyjc.png",
-        bg: "bg-white",
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943983/1_rxvdse.png",
+        bg: "bg-[#f8fafc]",
         text: "text-slate-800",
-        fit: "object-contain",
       },
       {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770207052/png-clipart-watercolor-flowers-watercolor-painting-floral-design-painted-white-lotus-white-flowers-illustration-texture-flower-arranging_fjoiqy.png",
-        bg: "bg-slate-50",
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/2_manpil.png",
+        bg: "bg-[#ffffff]",
         text: "text-slate-900",
-        fit: "object-contain",
+      },
+      {
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/3_o0xjro.png",
+        bg: "bg-[#ffffff]",
+        text: "text-slate-900",
       },
     ],
   },
-  holiday: {
-    label: "Свято",
+  warm: {
+    label: "Затишок",
     icon: Sparkles,
     variants: [
       {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770204700/blue-flower-bouquet-with-watercolor-for-background-wedding-fabric-textile-greeting-card-wallpaper-banner-sticker-decoration-etc-vector_bmzhxg.png",
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/1_dygtar.png",
         bg: "bg-[#f0f8ff]",
         text: "text-indigo-900",
-        fit: "object-contain",
       },
       {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770205210/ai-generated-watercolor-purple-floral-bouquet-clipart-gothic-flowers-illustration-free-png_jtgd4a.png",
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/2_yqzcqg.png",
         bg: "bg-[#f0f8ff]",
         text: "text-violet-900",
-        fit: "object-cover",
+      },
+      {
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/3_ifdl3n.png",
+        bg: "bg-[#f0f8ff]",
+        text: "text-indigo-800",
+      },
+      {
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/4_edited_qfsn7d.png",
+        bg: "bg-[#f0f8ff]",
+        text: "text-violet-900",
       },
     ],
   },
@@ -164,18 +188,29 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
 
   const [api, setApi] = useState<CarouselApi>();
+  const [activeIndex, setActiveIndex] = useState(0);
 
+  // Оновлюємо категорію та активний індекс при скролі
   useEffect(() => {
     if (!api) return;
 
-    api.on("select", () => {
+    const onSelect = () => {
       const index = api.selectedScrollSnap();
+      setActiveIndex(index); // Оновлюємо активний індекс для стилів
+
       const variant = FLATTENED_VARIANTS[index];
       if (variant) {
         setCategory(variant.category);
         setVariantIndex(variant.variantIndex);
       }
-    });
+    };
+
+    api.on("select", onSelect);
+    onSelect(); // Викликаємо один раз при ініціалізації
+
+    return () => {
+      api.off("select", onSelect);
+    };
   }, [api]);
 
   const handleCategoryClick = (catKey: keyof typeof DESIGNS) => {
@@ -191,6 +226,8 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
   const handleSend = async () => {
     setIsLoading(true);
     try {
+      const designId = `${category}_${variantIndex + 1}`;
+
       const res = await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -198,7 +235,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
           shopId: shop._id,
           text,
           signature,
-          designId: `${category}_${variantIndex}`,
+          designId: designId,
           fontId: selectedFont.id,
           phoneLast4,
         }),
@@ -332,57 +369,55 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
             {/* --- CAROUSEL --- */}
             <Carousel
               setApi={setApi}
-              className="w-full max-w-[340px]"
+              className="w-full max-w-[340px] py-10" // Додав py-10 щоб тінь не обрізалась
               opts={{
                 loop: true,
+                align: "center",
               }}
             >
-              <CarouselContent>
+              <CarouselContent className="-ml-4">
                 {FLATTENED_VARIANTS.map((variant, index) => {
-                  const isActive =
-                    category === variant.category &&
-                    variantIndex === variant.variantIndex;
+                  const isActive = index === activeIndex;
                   return (
                     <CarouselItem
                       key={`${variant.category}-${variant.variantIndex}`}
+                      className="pl-4 basis-[85%]" // basis-85% щоб бачити сусідні картки
                     >
                       <div
                         className={cn(
-                          "p-6 transition-all duration-500 ease-out", // Отступ для тени
+                          "p-6 transition-all duration-500 ease-out origin-center",
                           isActive
-                            ? "scale-100 opacity-100"
-                            : "scale-90 opacity-50 blur-[1px]", // Эффект фокуса
+                            ? "scale-100 z-10"
+                            : "scale-95 z-0 opacity-70", // opacity-70 для неактивних, але без блюру
                         )}
                       >
                         <div
                           className={cn(
                             "relative w-full aspect-[105/148] overflow-hidden rounded-sm bg-white transition-all duration-500",
-                            // Тень и контур
                             isActive
                               ? "shadow-[0_10px_20px_-2px_rgba(0,0,0,0.25)] ring-1 ring-black/5"
                               : "shadow-none ring-1 ring-black/5",
                             variant.bg,
                           )}
                         >
-                          <div
-                            className={cn(
-                              "w-full h-full p-7 flex flex-col items-center text-center",
-                            )}
-                          >
-                            <div className="w-full h-[45%] overflow-hidden mb-5 relative mix-blend-multiply">
-                              <Image
-                                src={variant.url}
-                                alt="design"
-                                fill
-                                className={cn("object-center", variant.fit)}
-                                sizes="(max-width: 768px) 100vw, 340px"
-                                priority={isActive}
-                              />
-                            </div>
-                            <div className="flex-1 w-full overflow-hidden">
+                          <div className="absolute inset-0 w-full h-full z-0">
+                            <Image
+                              src={variant.url}
+                              alt="design"
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 100vw, 340px"
+                              priority={isActive}
+                            />
+                          </div>
+
+                          {/* Контент поверх фону */}
+                          <div className="relative z-10 w-full h-full p-7 flex flex-col items-center text-center">
+                            {/* Текст по центру */}
+                            <div className="flex-1 w-full overflow-hidden flex items-center justify-center">
                               <p
                                 className={cn(
-                                  "text-lg whitespace-pre-wrap leading-relaxed break-words select-none",
+                                  "text-lg whitespace-pre-wrap leading-relaxed break-words select-none drop-shadow-md",
                                   variant.text,
                                   selectedFont.class,
                                 )}
@@ -394,7 +429,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                               <div className="w-full text-right mt-auto pt-2">
                                 <p
                                   className={cn(
-                                    "text-md opacity-90 select-none",
+                                    "text-md opacity-90 select-none drop-shadow-md",
                                     variant.text,
                                     selectedFont.class,
                                   )}
@@ -405,18 +440,21 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                             )}
                           </div>
 
-                          {/* Блик на активной карте для реализма */}
-                          {isActive && (
-                            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/30 pointer-events-none mix-blend-overlay" />
-                          )}
+                          {/* Блік тільки для активної */}
+                          <div
+                            className={cn(
+                              "absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/30 pointer-events-none mix-blend-overlay z-20 transition-opacity duration-500",
+                              isActive ? "opacity-100" : "opacity-0",
+                            )}
+                          />
                         </div>
                       </div>
                     </CarouselItem>
                   );
                 })}
               </CarouselContent>
-              <CarouselPrevious className="left-2 bg-white/80 hover:bg-white border-0 shadow-md" />
-              <CarouselNext className="right-2 bg-white/80 hover:bg-white border-0 shadow-md " />
+              <CarouselPrevious className="left-2 bg-white/80 hover:bg-white border-0 shadow-md z-20" />
+              <CarouselNext className="right-2 bg-white/80 hover:bg-white border-0 shadow-md z-20" />
             </Carousel>
 
             <p className="text-slate-400 text-xs font-medium uppercase tracking-tighter">
@@ -478,7 +516,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                 <button
                   key={hint}
                   onClick={() => {
-                    // Перевіряємо, чи влізе підказка
                     if (hint.length <= MAX_TEXT_LENGTH) setText(hint);
                   }}
                   className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-600 whitespace-nowrap hover:border-pink-300 transition-colors"

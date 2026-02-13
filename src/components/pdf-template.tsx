@@ -1,3 +1,4 @@
+// src/components/pdf-template.tsx
 import {
   Document,
   Page,
@@ -6,10 +7,13 @@ import {
   StyleSheet,
   Font,
   Image,
+  Svg,
+  Line,
 } from "@react-pdf/renderer";
 import path from "path";
 import fs from "fs";
 
+// --- Font Loading Logic (Same as before) ---
 let fontsLoaded = false;
 let robotoRegular: string | undefined;
 let robotoBold: string | undefined;
@@ -24,17 +28,14 @@ const loadFont = (filename: string) => {
       const buffer = fs.readFileSync(filePath);
       return `data:font/ttf;base64,${buffer.toString("base64")}`;
     }
-    console.warn(`⚠️ Шрифт не знайдено за шляхом: ${filePath}`);
     return undefined;
   } catch (e) {
-    console.error(`❌ Помилка читання шрифту ${filename}:`, e);
     return undefined;
   }
 };
 
 const registerFonts = () => {
   if (fontsLoaded) return;
-
   robotoRegular = loadFont("Roboto-Regular.ttf");
   robotoBold = loadFont("Roboto-Bold.ttf");
   marckScript = loadFont("MarckScript-Regular.ttf");
@@ -51,61 +52,89 @@ const registerFonts = () => {
         ],
       });
     }
-
-    if (marckScript) {
-      Font.register({ family: "MarckScript", src: marckScript });
-    }
-
+    if (marckScript) Font.register({ family: "MarckScript", src: marckScript });
     if (greatVibes) {
       Font.register({ family: "GreatVibes", src: greatVibes });
-    } else {
-      // Fallback
-      if (marckScript) {
-        Font.register({ family: "GreatVibes", src: marckScript });
-      }
+    } else if (marckScript) {
+      Font.register({ family: "GreatVibes", src: marckScript });
     }
-
-    if (playfair) {
-      Font.register({ family: "Playfair", src: playfair });
-    }
-
+    if (playfair) Font.register({ family: "Playfair", src: playfair });
     fontsLoaded = true;
-    console.log("✅ Шрифти успішно зареєстровані");
   } catch (error) {
-    console.error("🔥 Помилка реєстрації шрифтів:", error);
+    console.error("Font registration error:", error);
   }
 };
 
 registerFonts();
 
+// --- CONSTANTS & DIMENSIONS ---
 const MM_TO_PT = 2.83465;
-const PAGE_WIDTH = 111 * MM_TO_PT;
-const PAGE_HEIGHT = 154 * MM_TO_PT;
-const CONTENT_PADDING = 10 * MM_TO_PT;
 
+// Page (A4)
+const A4_WIDTH = 210 * MM_TO_PT;
+const A4_HEIGHT = 297 * MM_TO_PT;
+
+// Card Final Size (Clean A6)
+const CARD_WIDTH = 105 * MM_TO_PT;
+const CARD_HEIGHT = 148 * MM_TO_PT;
+
+// Bleed
+const BLEED_MM = 3;
+const BLEED = BLEED_MM * MM_TO_PT;
+
+// Card with Bleed (Image Size)
+const FULL_WIDTH = CARD_WIDTH + BLEED * 2; // 111mm
+const FULL_HEIGHT = CARD_HEIGHT + BLEED * 2; // 154mm
+
+// Crop Marks Configuration
+const CROP_OFFSET = 3 * MM_TO_PT; // Відступ мітки від кута листівки
+const CROP_LENGTH = 5 * MM_TO_PT; // Довжина лінії різу
+
+// Safe Area (Padding inside the clean card)
+const SAFE_PADDING = 8 * MM_TO_PT; // 8mm from edge
+
+// Styles
 const styles = StyleSheet.create({
   page: {
-    padding: CONTENT_PADDING,
-    flexDirection: "column",
+    width: A4_WIDTH,
+    height: A4_HEIGHT,
+    backgroundColor: "#ffffff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  container: {
-    flex: 1,
-    flexDirection: "column",
+  // Контейнер, який центрує все на А4
+  wrapper: {
+    width: FULL_WIDTH,
+    height: FULL_HEIGHT,
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  imageSection: {
-    height: "45%",
-    width: "100%",
-    marginBottom: 20,
+  // Фон (картинка з вильотами)
+  backgroundImage: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: FULL_WIDTH,
+    height: FULL_HEIGHT,
+    objectFit: "cover", // Заповнюємо весь простір вильотів
+  },
+  // Безпечна зона для тексту (всередині чистого розміру)
+  safeArea: {
+    width: CARD_WIDTH - SAFE_PADDING * 2,
+    height: CARD_HEIGHT - SAFE_PADDING * 2,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    zIndex: 10,
+  },
+  textContainer: {
+    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
-  contentSection: {
-    flexGrow: 1,
-    flexDirection: "column",
+    marginBottom: 10,
   },
   text: {
     fontSize: 14,
@@ -126,7 +155,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   footer: {
-    height: 30,
+    height: 20,
     justifyContent: "flex-end",
     alignItems: "center",
     width: "100%",
@@ -139,54 +168,79 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto",
     fontWeight: 700,
   },
+  // Шар для міток різу (поверх усього)
+  cropLayer: {
+    position: "absolute",
+    top: -20 * MM_TO_PT, // Виходимо за межі картки
+    left: -20 * MM_TO_PT,
+    width: FULL_WIDTH + 40 * MM_TO_PT,
+    height: FULL_HEIGHT + 40 * MM_TO_PT,
+    pointerEvents: "none",
+  },
 });
 
 interface DesignConfig {
   url: string;
-  color: string;
-  mode: "contain" | "cover";
+  color: string; // Fallback color
 }
 
+// TODO: Замініть URL на реальні, коли завантажите нові фони 1240x1748
 const DESIGNS: Record<string, DesignConfig> = {
-  gentle_0: {
-    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770203577/1-12574_watercolor-flower-png-free-flower-pink-vector-png_kyet2r.png",
-    color: "#fff0f5",
-    mode: "contain",
-  },
   gentle_1: {
-    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770203578/1000_F_612026850_6JlSZVdzOqa3sPiePleg5nqMtBVYWuib_ul4ah2.png",
-    color: "#fff5f5",
-    mode: "contain",
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/1_naahmv.png",
+    color: "#fff0f5",
   },
-  fun_0: {
-    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770207274/Gemini_Generated_Image_40q4kt40q4kt40q4_prll00.png",
-    color: "#fef9c3",
-    mode: "cover",
+  gentle_2: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944120/2_edited_w7iij8.png",
+    color: "#fff5f5",
+  },
+  gentle_3: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/3_sgizoy.png",
+    color: "#fff5f5",
   },
   fun_1: {
-    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770207273/Gemini_Generated_Image_30blr30blr30blr3_u4r5wx.png",
-    color: "#fff8e1",
-    mode: "cover",
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/1_ahpnjm.png",
+    color: "#fef9c3",
   },
-  minimal_0: {
-    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770206593/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTEyL3Jhd3BpeGVsb2ZmaWNlMTFfc2ltcGxlX3dhdGVyY29sb3JfcHJpbnRfb2Zfd2hpdGVfYW5kX2dyZWVuX3dlZF9hYWQ3ZmY3MC01MTJiLTQ3YjUtYjkyZS03MTM5N2ExOTRjYTEucG5n_1_bvjyjc.png",
-    color: "#ffffff",
-    mode: "contain",
+  fun_2: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/2_edited_zx67ff.png",
+    color: "#fff8e1",
+  },
+  fun_3: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944218/3_edited_ejmimb.png",
+    color: "#fff8e1",
+  },
+  fun_4: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944220/4_avhwvw.png",
+    color: "#fff8e1",
   },
   minimal_1: {
-    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770207052/png-clipart-watercolor-flowers-watercolor-painting-floral-design-painted-white-lotus-white-flowers-illustration-texture-flower-arranging_fjoiqy.png",
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943983/1_rxvdse.png",
     color: "#f8fafc",
-    mode: "contain",
   },
-  holiday_0: {
-    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770204700/blue-flower-bouquet-with-watercolor-for-background-wedding-fabric-textile-greeting-card-wallpaper-banner-sticker-decoration-etc-vector_bmzhxg.png",
-    color: "#f0f8ff",
-    mode: "contain",
+  minimal_2: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/2_manpil.png",
+    color: "#ffffff",
   },
-  holiday_1: {
-    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770205210/ai-generated-watercolor-purple-floral-bouquet-clipart-gothic-flowers-illustration-free-png_jtgd4a.png",
+  minimal_3: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/3_o0xjro.png",
+    color: "#ffffff",
+  },
+  warm_1: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/1_dygtar.png",
     color: "#f0f8ff",
-    mode: "contain",
+  },
+  warm_2: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/2_yqzcqg.png",
+    color: "#f0f8ff",
+  },
+  warm_3: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/3_ifdl3n.png",
+    color: "#f0f8ff",
+  },
+  warm_4: {
+    url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/4_edited_qfsn7d.png",
+    color: "#f0f8ff",
   },
 };
 
@@ -198,6 +252,103 @@ interface PdfProps {
   shopName: string;
 }
 
+// Компонент для малювання міток різу
+const CropMarks = () => {
+  // Координати кутів чистого формату відносно центру (враховуючи offset шару cropLayer)
+  // Центр cropLayer співпадає з центром картки
+
+  // Координати кутів обрізного формату (Clean Size) всередині FULL_WIDTH/HEIGHT
+  const left = BLEED;
+  const top = BLEED;
+  const right = FULL_WIDTH - BLEED;
+  const bottom = FULL_HEIGHT - BLEED;
+
+  // Абсолютні координати в Svg, який покриває весь Wrapper
+  return (
+    <Svg
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: FULL_WIDTH,
+        height: FULL_HEIGHT,
+      }}
+    >
+      {/* Top Left */}
+      <Line
+        x1={left}
+        y1={top - CROP_OFFSET}
+        x2={left}
+        y2={top - CROP_OFFSET - CROP_LENGTH}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+      <Line
+        x1={left - CROP_OFFSET}
+        y1={top}
+        x2={left - CROP_OFFSET - CROP_LENGTH}
+        y2={top}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+
+      {/* Top Right */}
+      <Line
+        x1={right}
+        y1={top - CROP_OFFSET}
+        x2={right}
+        y2={top - CROP_OFFSET - CROP_LENGTH}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+      <Line
+        x1={right + CROP_OFFSET}
+        y1={top}
+        x2={right + CROP_OFFSET + CROP_LENGTH}
+        y2={top}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+
+      {/* Bottom Left */}
+      <Line
+        x1={left}
+        y1={bottom + CROP_OFFSET}
+        x2={left}
+        y2={bottom + CROP_OFFSET + CROP_LENGTH}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+      <Line
+        x1={left - CROP_OFFSET}
+        y1={bottom}
+        x2={left - CROP_OFFSET - CROP_LENGTH}
+        y2={bottom}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+
+      {/* Bottom Right */}
+      <Line
+        x1={right}
+        y1={bottom + CROP_OFFSET}
+        x2={right}
+        y2={bottom + CROP_OFFSET + CROP_LENGTH}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+      <Line
+        x1={right + CROP_OFFSET}
+        y1={bottom}
+        x2={right + CROP_OFFSET + CROP_LENGTH}
+        y2={bottom}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+    </Svg>
+  );
+};
+
 export const CardPdfDocument = ({
   text,
   signature,
@@ -206,30 +357,31 @@ export const CardPdfDocument = ({
   shopName,
 }: PdfProps) => {
   const config = DESIGNS[designId] || DESIGNS["gentle_0"];
-
   let activeFontFamily = "Roboto";
-
   if (fontId === "font-playfair") activeFontFamily = "MarckScript";
   if (fontId === "font-vibes") activeFontFamily = "GreatVibes";
 
   return (
     <Document>
-      <Page
-        size={[PAGE_WIDTH, PAGE_HEIGHT]}
-        style={[styles.page, { backgroundColor: config.color }]}
-      >
-        <View style={styles.container}>
-          <View style={styles.imageSection}>
-            <Image
-              src={config.url}
-              style={[styles.image, { objectFit: config.mode }]}
-            />
-          </View>
+      <Page size="A4" style={styles.page}>
+        {/* Центральний контейнер з розмірами листівки + бліди */}
+        <View style={styles.wrapper}>
+          {/* Фон - заповнює все, включаючи вильоти */}
+          <Image
+            src={config.url}
+            style={[styles.backgroundImage, { backgroundColor: config.color }]}
+          />
 
-          <View style={styles.contentSection}>
-            <Text style={[styles.text, { fontFamily: activeFontFamily }]}>
-              {text}
-            </Text>
+          {/* Мітки різу */}
+          <CropMarks />
+
+          {/* Безпечна зона для контенту */}
+          <View style={styles.safeArea}>
+            <View style={styles.textContainer}>
+              <Text style={[styles.text, { fontFamily: activeFontFamily }]}>
+                {text}
+              </Text>
+            </View>
 
             {signature && (
               <View style={styles.signatureWrapper}>
@@ -240,10 +392,10 @@ export const CardPdfDocument = ({
                 </Text>
               </View>
             )}
-          </View>
 
-          <View style={styles.footer}>
-            <Text style={styles.brandName}>{shopName}</Text>
+            <View style={styles.footer}>
+              <Text style={styles.brandName}>{shopName}</Text>
+            </View>
           </View>
         </View>
       </Page>
