@@ -43,6 +43,7 @@ const FONTS = [
   { id: "font-vibes", label: "Рукописний", class: "font-cursive" },
 ];
 
+// ЗМІНА 1: Порядок категорій (Ніжно, Тепло, Свято, Мінімал)
 const DESIGNS = {
   gentle: {
     label: "Ніжно",
@@ -62,6 +63,32 @@ const DESIGNS = {
         url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/3_sgizoy.png",
         bg: "bg-[#fff5f5]",
         text: "text-[#4A5D4E]",
+      },
+    ],
+  },
+  warm: {
+    label: "Тепло",
+    icon: Sparkles,
+    variants: [
+      {
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/1_dygtar.png",
+        bg: "bg-[#f0f8ff]",
+        text: "text-[#4E342E]",
+      },
+      {
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/2_yqzcqg.png",
+        bg: "bg-[#f0f8ff]",
+        text: "text-[#5B6346]",
+      },
+      {
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/3_ifdl3n.png",
+        bg: "bg-[#f0f8ff]",
+        text: "text-[#6B4F7E]",
+      },
+      {
+        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/4_edited_qfsn7d.png",
+        bg: "bg-[#f0f8ff]",
+        text: "text-[#603813]",
       },
     ],
   },
@@ -112,50 +139,20 @@ const DESIGNS = {
       },
     ],
   },
-  warm: {
-    label: "Тепло",
-    icon: Sparkles,
-    variants: [
-      {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/1_dygtar.png",
-        bg: "bg-[#f0f8ff]",
-        text: "text-[#4E342E]",
-      },
-      {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/2_yqzcqg.png",
-        bg: "bg-[#f0f8ff]",
-        text: "text-[#5B6346]",
-      },
-      {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/3_ifdl3n.png",
-        bg: "bg-[#f0f8ff]",
-        text: "text-[#6B4F7E]",
-      },
-      {
-        url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/4_edited_qfsn7d.png",
-        bg: "bg-[#f0f8ff]",
-        text: "text-[#603813]",
-      },
-    ],
-  },
 };
 
-const FLATTENED_VARIANTS = Object.entries(DESIGNS).flatMap(
-  ([catKey, catData]) =>
-    catData.variants.map((variant, index) => ({
-      category: catKey as keyof typeof DESIGNS,
-      variantIndex: index,
-      ...variant,
-    })),
-);
-
+// ЗМІНА 2: Оновлений список підказок
 const TEXT_HINTS = [
-  "З Днем Народження!",
-  "Ти — моє натхнення",
+  "З Днем народження!",
+  "Ти - моє натхнення",
   "Дякую, що ти є",
   "Найщиріші вітання!",
   "Люблю тебе безмежно",
-  "Одужуй швидше",
+  "З думкою про тебе",
+  "Обіймаю подумки",
+  "Щастя без краю!",
+  "Поруч із тобою - добре",
+  "Для твоєї посмішки",
 ];
 
 interface ShopData {
@@ -174,6 +171,8 @@ const stripEmojis = (str: string) => {
 
 export default function CardBuilder({ shop }: { shop: ShopData }) {
   const [step, setStep] = useState<"intro" | "editor" | "success">("intro");
+
+  // Початковий стан: перша категорія, перший варіант
   const [category, setCategory] = useState<keyof typeof DESIGNS>("gentle");
   const [variantIndex, setVariantIndex] = useState(0);
 
@@ -186,19 +185,17 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
 
   const [api, setApi] = useState<CarouselApi>();
-  const [activeIndex, setActiveIndex] = useState(0);
 
+  // Отримуємо варіанти ТІЛЬКИ поточної категорії для каруселі
+  const currentCategoryVariants = DESIGNS[category].variants;
+
+  // ЗМІНА 3: Логіка перемикання слайдів тепер працює в межах категорії
   useEffect(() => {
     if (!api) return;
 
     const onSelect = () => {
-      const index = api.selectedScrollSnap();
-      setActiveIndex(index);
-      const variant = FLATTENED_VARIANTS[index];
-      if (variant) {
-        setCategory(variant.category);
-        setVariantIndex(variant.variantIndex);
-      }
+      // Індекс в каруселі тепер відповідає індексу варіанту в категорії
+      setVariantIndex(api.selectedScrollSnap());
     };
 
     api.on("select", onSelect);
@@ -207,21 +204,24 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
     return () => {
       api.off("select", onSelect);
     };
-  }, [api]);
+  }, [api, category]); // Додано category в залежності, щоб оновлювати події при зміні категорії
 
+  // ЗМІНА 4: При кліку на категорію скидаємо на 1-й слайд і змінюємо набір
   const handleCategoryClick = (catKey: keyof typeof DESIGNS) => {
-    if (!api) return;
-    const index = FLATTENED_VARIANTS.findIndex(
-      (v) => v.category === catKey && v.variantIndex === 0,
-    );
-    if (index !== -1) {
-      api.scrollTo(index);
+    if (category === catKey) return;
+    setCategory(catKey);
+    setVariantIndex(0);
+    // Якщо API доступне, скролимо на початок нової категорії
+    if (api) {
+      api.scrollTo(0, true); // true = миттєвий стрибок без анімації
     }
   };
 
   const handleSend = async () => {
     setIsLoading(true);
     try {
+      // Формуємо ID дизайну. variantIndex тепер локальний (0, 1, 2...)
+      // Це коректно працює, бо ми беремо category з state
       const designId = `${category}_${variantIndex + 1}`;
 
       const res = await fetch("/api/order", {
@@ -370,12 +370,13 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                 align: "center",
               }}
             >
+              {/* ЗМІНА 5: Рендеримо тільки варіанти поточної категорії */}
               <CarouselContent className="-ml-4">
-                {FLATTENED_VARIANTS.map((variant, index) => {
-                  const isActive = index === activeIndex;
+                {currentCategoryVariants.map((variant, index) => {
+                  const isActive = index === variantIndex;
                   return (
                     <CarouselItem
-                      key={`${variant.category}-${variant.variantIndex}`}
+                      key={`${category}-${index}`}
                       className="pl-4 basis-[85%]"
                     >
                       <div
@@ -406,13 +407,10 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                             />
                           </div>
 
-                          {/* ЗМІНА: Абсолютне позиціювання.
-                              Текст по центру всього контейнера (p-7 залишаємо для безпечної зони візуально)
-                           */}
                           <div className="absolute inset-0 flex items-center justify-center p-8 z-10">
                             <p
                               className={cn(
-                                "text-lg whitespace-pre-wrap leading-relaxed break-words select-none drop-shadow-md text-center pb-6", // pb-6 щоб не наїжджало на підпис
+                                "text-lg whitespace-pre-wrap leading-relaxed break-words select-none drop-shadow-md text-center pb-6",
                                 variant.text,
                                 selectedFont.class,
                               )}
@@ -421,7 +419,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                             </p>
                           </div>
 
-                          {/* ЗМІНА: Підпис прибитий до низу справа абсолютно */}
                           {signature && (
                             <div className="absolute bottom-8 right-8 z-20 max-w-[80%] text-right">
                               <p
