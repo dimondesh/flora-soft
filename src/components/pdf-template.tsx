@@ -37,7 +37,6 @@ const loadFont = (filename: string) => {
 const registerFonts = () => {
   if (fontsLoaded) return;
 
-  // Спробуємо завантажити шрифти
   try {
     robotoRegular = loadFont("Roboto-Regular.ttf");
     robotoBold = loadFont("Roboto-Bold.ttf");
@@ -62,11 +61,9 @@ const registerFonts = () => {
     }
     if (playfair) Font.register({ family: "Playfair", src: playfair });
 
-    // Вважаємо, що шрифти завантажені, якщо хоча б основний є
     if (robotoRegular) fontsLoaded = true;
   } catch (error) {
     console.error("Font registration error:", error);
-    // fontsLoaded залишається false
   }
 };
 
@@ -94,9 +91,10 @@ const FULL_HEIGHT = CARD_HEIGHT + BLEED * 2; // 154mm
 // Crop Marks Configuration
 const CROP_OFFSET = 3 * MM_TO_PT;
 const CROP_LENGTH = 5 * MM_TO_PT;
+const MARK_BUFFER = 20 * MM_TO_PT;
 
-// Safe Area (Padding inside the clean card)
-const SAFE_PADDING = 8 * MM_TO_PT;
+// Safe Area
+const SAFE_PADDING = 12 * MM_TO_PT;
 
 // Styles
 const styles = StyleSheet.create({
@@ -108,48 +106,49 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Контейнер (Wrapper) тепер просто задає розміри і є точкою відліку (relative)
   wrapper: {
     width: FULL_WIDTH,
     height: FULL_HEIGHT,
     position: "relative",
+    // Фон задається динамічно через inline style
   },
-  // Фон (картинка) - абсолютне позиціювання
   backgroundImage: {
+    position: "absolute",
+    top: BLEED,
+    left: BLEED,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    objectFit: "fill",
+  },
+  safeArea: {
+    position: "absolute",
+    top: BLEED + SAFE_PADDING,
+    left: BLEED + SAFE_PADDING,
+    width: CARD_WIDTH - SAFE_PADDING * 2,
+    height: CARD_HEIGHT - SAFE_PADDING * 2,
+  },
+  textContainer: {
     position: "absolute",
     top: 0,
     left: 0,
-    width: FULL_WIDTH,
-    height: FULL_HEIGHT,
-    objectFit: "cover",
-  },
-  // Безпечна зона - ТАКОЖ абсолютне позиціювання, щоб гарантовано бути зверху
-  safeArea: {
-    position: "absolute",
-    top: BLEED + SAFE_PADDING, // Зсув зверху: 3мм (блід) + 8мм (відступ)
-    left: BLEED + SAFE_PADDING, // Зсув зліва
-    width: CARD_WIDTH - SAFE_PADDING * 2,
-    height: CARD_HEIGHT - SAFE_PADDING * 2,
+    width: "100%",
+    height: "100%",
     display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-  },
-  textContainer: {
-    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
   },
   text: {
     fontSize: 14,
     textAlign: "center",
     lineHeight: 1.5,
+    paddingBottom: 20,
   },
   signatureWrapper: {
-    marginTop: "auto",
-    paddingTop: 10,
+    position: "absolute",
+    bottom: 20,
+    right: 0,
     width: "100%",
-    alignItems: "flex-end",
+    textAlign: "right",
   },
   signature: {
     fontSize: 16,
@@ -157,84 +156,100 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   footer: {
-    height: 20,
-    justifyContent: "flex-end",
-    alignItems: "center",
+    position: "absolute",
+    bottom: 0,
+    right: 0,
     width: "100%",
+    textAlign: "right",
   },
   brandName: {
     fontSize: 8,
     color: "#94a3b8",
     textTransform: "uppercase",
     letterSpacing: 2,
-    fontFamily: "Roboto", // Fallback буде оброблено в компоненті
     fontWeight: 700,
   },
 });
 
 interface DesignConfig {
   url: string;
-  color: string;
+  color: string; // Колір тексту
+  bgColor: string; // Колір фону для вильотів (bleed)
 }
 
 const DESIGNS: Record<string, DesignConfig> = {
   gentle_1: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/1_naahmv.png",
     color: "#7D5A50",
+    bgColor: "#FEFDFD",
   },
   gentle_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944120/2_edited_w7iij8.png",
     color: "#5E4B4B",
+    bgColor: "#FDF9F9",
   },
   gentle_3: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944121/3_sgizoy.png",
     color: "#4A5D4E",
+    bgColor: "#FEFCFC",
   },
   fun_1: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944219/1_ahpnjm.png",
     color: "#795548",
+    bgColor: "#FEFBFA",
   },
   fun_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770948559/2_edited_1_a08gir.png",
     color: "#6D5D6E",
+    bgColor: "#FEFCFB",
   },
   fun_3: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944218/3_edited_ejmimb.png",
     color: "#B71C1C",
+    bgColor: "#FBFAF5",
   },
   fun_4: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944220/4_avhwvw.png",
     color: "#8E2424",
+    bgColor: "#FEFBFA",
   },
   minimal_1: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943983/1_rxvdse.png",
     color: "#8D6E63",
+    bgColor: "#FDF7F5",
   },
   minimal_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/2_manpil.png",
     color: "#705C5E",
+    bgColor: "#FEFBFA",
   },
   minimal_3: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/3_o0xjro.png",
     color: "#5D4037",
+    bgColor: "#FEFBF9",
   },
   warm_1: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/1_dygtar.png",
     color: "#4E342E",
+    bgColor: "#FDF4F5",
   },
   warm_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/2_yqzcqg.png",
     color: "#5B6346",
+    bgColor: "#FEFBF9",
   },
   warm_3: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/3_ifdl3n.png",
     color: "#6B4F7E",
+    bgColor: "#FDF8F3",
   },
   warm_4: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/4_edited_qfsn7d.png",
     color: "#603813",
+    bgColor: "#FEFBFB",
   },
 };
+
 interface PdfProps {
   text: string;
   signature?: string;
@@ -243,88 +258,85 @@ interface PdfProps {
   shopName: string;
 }
 
-// Компонент для малювання міток різу
 const CropMarks = () => {
   const left = BLEED;
   const top = BLEED;
   const right = FULL_WIDTH - BLEED;
   const bottom = FULL_HEIGHT - BLEED;
 
+  const shift = (val: number) => val + MARK_BUFFER;
+
   return (
     <Svg
       style={{
         position: "absolute",
-        top: 0,
-        left: 0,
-        width: FULL_WIDTH,
-        height: FULL_HEIGHT,
+        top: -MARK_BUFFER,
+        left: -MARK_BUFFER,
+        width: FULL_WIDTH + MARK_BUFFER * 2,
+        height: FULL_HEIGHT + MARK_BUFFER * 2,
       }}
     >
-      {/* Top Left */}
       <Line
-        x1={left}
-        y1={top - CROP_OFFSET}
-        x2={left}
-        y2={top - CROP_OFFSET - CROP_LENGTH}
+        x1={shift(left)}
+        y1={shift(top - CROP_OFFSET)}
+        x2={shift(left)}
+        y2={shift(top - CROP_OFFSET - CROP_LENGTH)}
         stroke="black"
         strokeWidth={0.5}
       />
       <Line
-        x1={left - CROP_OFFSET}
-        y1={top}
-        x2={left - CROP_OFFSET - CROP_LENGTH}
-        y2={top}
-        stroke="black"
-        strokeWidth={0.5}
-      />
-      {/* Top Right */}
-      <Line
-        x1={right}
-        y1={top - CROP_OFFSET}
-        x2={right}
-        y2={top - CROP_OFFSET - CROP_LENGTH}
+        x1={shift(left - CROP_OFFSET)}
+        y1={shift(top)}
+        x2={shift(left - CROP_OFFSET - CROP_LENGTH)}
+        y2={shift(top)}
         stroke="black"
         strokeWidth={0.5}
       />
       <Line
-        x1={right + CROP_OFFSET}
-        y1={top}
-        x2={right + CROP_OFFSET + CROP_LENGTH}
-        y2={top}
-        stroke="black"
-        strokeWidth={0.5}
-      />
-      {/* Bottom Left */}
-      <Line
-        x1={left}
-        y1={bottom + CROP_OFFSET}
-        x2={left}
-        y2={bottom + CROP_OFFSET + CROP_LENGTH}
+        x1={shift(right)}
+        y1={shift(top - CROP_OFFSET)}
+        x2={shift(right)}
+        y2={shift(top - CROP_OFFSET - CROP_LENGTH)}
         stroke="black"
         strokeWidth={0.5}
       />
       <Line
-        x1={left - CROP_OFFSET}
-        y1={bottom}
-        x2={left - CROP_OFFSET - CROP_LENGTH}
-        y2={bottom}
-        stroke="black"
-        strokeWidth={0.5}
-      />
-      {/* Bottom Right */}
-      <Line
-        x1={right}
-        y1={bottom + CROP_OFFSET}
-        x2={right}
-        y2={bottom + CROP_OFFSET + CROP_LENGTH}
+        x1={shift(right + CROP_OFFSET)}
+        y1={shift(top)}
+        x2={shift(right + CROP_OFFSET + CROP_LENGTH)}
+        y2={shift(top)}
         stroke="black"
         strokeWidth={0.5}
       />
       <Line
-        x1={right + CROP_OFFSET}
-        y1={bottom}
-        x2={right + CROP_OFFSET + CROP_LENGTH}
-        y2={bottom}
+        x1={shift(left)}
+        y1={shift(bottom + CROP_OFFSET)}
+        x2={shift(left)}
+        y2={shift(bottom + CROP_OFFSET + CROP_LENGTH)}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+      <Line
+        x1={shift(left - CROP_OFFSET)}
+        y1={shift(bottom)}
+        x2={shift(left - CROP_OFFSET - CROP_LENGTH)}
+        y2={shift(bottom)}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+      <Line
+        x1={shift(right)}
+        y1={shift(bottom + CROP_OFFSET)}
+        x2={shift(right)}
+        y2={shift(bottom + CROP_OFFSET + CROP_LENGTH)}
+        stroke="black"
+        strokeWidth={0.5}
+      />
+      <Line
+        x1={shift(right + CROP_OFFSET)}
+        y1={shift(bottom)}
+        x2={shift(right + CROP_OFFSET + CROP_LENGTH)}
+        y2={shift(bottom)}
         stroke="black"
         strokeWidth={0.5}
       />
@@ -341,7 +353,6 @@ export const CardPdfDocument = ({
 }: PdfProps) => {
   const config = DESIGNS[designId] || DESIGNS["gentle_1"];
 
-  // Логіка вибору шрифту з запасним варіантом (Helvetica), якщо файли не завантажились
   let activeFontFamily = fontsLoaded ? "Roboto" : "Helvetica";
   let signatureFontFamily = fontsLoaded ? "Roboto" : "Helvetica";
 
@@ -355,31 +366,23 @@ export const CardPdfDocument = ({
       signatureFontFamily = "GreatVibes";
     }
   } else {
-    // Fallback для стилів, якщо файлів немає
     if (fontId === "font-playfair") activeFontFamily = "Times-Roman";
   }
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Центральний контейнер (Wrapper) */}
-        <View style={styles.wrapper}>
-          {/* 1. ФОН (Найнижчий шар) */}
-          <Image
-            src={config.url}
-            style={[styles.backgroundImage]} // Прибрав backgroundColor, він тут не критичний, якщо картинка завантажується
-          />
-
-          {/* 2. МІТКИ РІЗУ */}
+        {/* Використовуємо bgColor для фону вильотів */}
+        <View style={[styles.wrapper, { backgroundColor: config.bgColor }]}>
+          <Image src={config.url} style={styles.backgroundImage} />
           <CropMarks />
 
-          {/* 3. КОНТЕНТ (Верхній шар, абсолютне позиціювання) */}
           <View style={styles.safeArea}>
             <View style={styles.textContainer}>
-              {/* ДОДАНО: color: config.color */}
               <Text
                 style={[
                   styles.text,
+                  // Використовуємо color для тексту
                   { fontFamily: activeFontFamily, color: config.color },
                 ]}
               >
@@ -389,10 +392,10 @@ export const CardPdfDocument = ({
 
             {signature && (
               <View style={styles.signatureWrapper}>
-                {/* ДОДАНО: color: config.color */}
                 <Text
                   style={[
                     styles.signature,
+                    // Використовуємо color для підпису
                     { fontFamily: signatureFontFamily, color: config.color },
                   ]}
                 >
@@ -402,7 +405,6 @@ export const CardPdfDocument = ({
             )}
 
             <View style={styles.footer}>
-              {/* Використовуємо Helvetica для футера, якщо Roboto не завантажився */}
               <Text
                 style={[
                   styles.brandName,

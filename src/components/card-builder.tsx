@@ -1,4 +1,3 @@
-// src/components/card-builder.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -44,7 +43,6 @@ const FONTS = [
   { id: "font-vibes", label: "Рукописний", class: "font-cursive" },
 ];
 
-// Оновлені дизайни згідно з pdf-template.tsx
 const DESIGNS = {
   gentle: {
     label: "Ніжно",
@@ -190,14 +188,12 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
   const [api, setApi] = useState<CarouselApi>();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Оновлюємо категорію та активний індекс при скролі
   useEffect(() => {
     if (!api) return;
 
     const onSelect = () => {
       const index = api.selectedScrollSnap();
-      setActiveIndex(index); // Оновлюємо активний індекс для стилів
-
+      setActiveIndex(index);
       const variant = FLATTENED_VARIANTS[index];
       if (variant) {
         setCategory(variant.category);
@@ -206,7 +202,7 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
     };
 
     api.on("select", onSelect);
-    onSelect(); // Викликаємо один раз при ініціалізації
+    onSelect();
 
     return () => {
       api.off("select", onSelect);
@@ -366,10 +362,9 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-8">
         <div className="w-full md:w-1/2 flex flex-col items-center">
           <div className="sticky top-24 w-full flex flex-col items-center gap-6">
-            {/* --- CAROUSEL --- */}
             <Carousel
               setApi={setApi}
-              className="w-full max-w-[340px] py-10" // Додав py-10 щоб тінь не обрізалась
+              className="w-full max-w-[340px] py-10"
               opts={{
                 loop: true,
                 align: "center",
@@ -381,14 +376,14 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                   return (
                     <CarouselItem
                       key={`${variant.category}-${variant.variantIndex}`}
-                      className="pl-4 basis-[85%]" // basis-85% щоб бачити сусідні картки
+                      className="pl-4 basis-[85%]"
                     >
                       <div
                         className={cn(
                           "p-6 transition-all duration-500 ease-out origin-center",
                           isActive
                             ? "scale-100 z-10"
-                            : "scale-95 z-0 opacity-70", // opacity-70 для неактивних, але без блюру
+                            : "scale-95 z-0 opacity-70",
                         )}
                       >
                         <div
@@ -411,36 +406,36 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                             />
                           </div>
 
-                          {/* Контент поверх фону */}
-                          <div className="relative z-10 w-full h-full p-7 flex flex-col items-center text-center">
-                            {/* Текст по центру */}
-                            <div className="flex-1 w-full overflow-hidden flex items-center justify-center">
+                          {/* ЗМІНА: Абсолютне позиціювання.
+                              Текст по центру всього контейнера (p-7 залишаємо для безпечної зони візуально)
+                           */}
+                          <div className="absolute inset-0 flex items-center justify-center p-8 z-10">
+                            <p
+                              className={cn(
+                                "text-lg whitespace-pre-wrap leading-relaxed break-words select-none drop-shadow-md text-center pb-6", // pb-6 щоб не наїжджало на підпис
+                                variant.text,
+                                selectedFont.class,
+                              )}
+                            >
+                              {text || "Напишіть кілька теплих слів…"}
+                            </p>
+                          </div>
+
+                          {/* ЗМІНА: Підпис прибитий до низу справа абсолютно */}
+                          {signature && (
+                            <div className="absolute bottom-8 right-8 z-20 max-w-[80%] text-right">
                               <p
                                 className={cn(
-                                  "text-lg whitespace-pre-wrap leading-relaxed break-words select-none drop-shadow-md",
+                                  "text-md opacity-90 select-none drop-shadow-md",
                                   variant.text,
                                   selectedFont.class,
                                 )}
                               >
-                                {text || "Напишіть кілька теплих слів…"}
+                                {signature}
                               </p>
                             </div>
-                            {signature && (
-                              <div className="w-full text-right mt-auto pt-2">
-                                <p
-                                  className={cn(
-                                    "text-md opacity-90 select-none drop-shadow-md",
-                                    variant.text,
-                                    selectedFont.class,
-                                  )}
-                                >
-                                  {signature}
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                          )}
 
-                          {/* Блік тільки для активної */}
                           <div
                             className={cn(
                               "absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/30 pointer-events-none mix-blend-overlay z-20 transition-opacity duration-500",
@@ -465,7 +460,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
 
         {/* ПРАВА ЧАСТИНА: НАЛАШТУВАННЯ */}
         <div className="w-full md:w-1/2 space-y-8 pb-32 md:pb-8">
-          {/* Категорії */}
           <div className="space-y-3">
             <Label className="text-slate-400 uppercase text-[10px] font-extrabold tracking-widest">
               1. Оберіть стиль
@@ -494,7 +488,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
             </div>
           </div>
 
-          {/* Текст */}
           <div className="space-y-3">
             <div className="flex justify-between items-baseline">
               <Label className="text-slate-400 uppercase text-[10px] font-extrabold tracking-widest">
@@ -533,7 +526,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
             />
           </div>
 
-          {/* Підпис */}
           <div className="space-y-3">
             <div className="flex justify-between items-baseline">
               <Label className="text-slate-400 uppercase text-[10px] font-extrabold tracking-widest">
@@ -559,7 +551,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
             />
           </div>
 
-          {/* Шрифти */}
           <div className="space-y-3">
             <Label className="text-slate-400 uppercase text-[10px] font-extrabold tracking-widest">
               4. Шрифт
@@ -592,7 +583,6 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
         </div>
       </div>
 
-      {/* МОДАЛКА */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="rounded-3xl p-6 md:p-8 w-[90%] max-w-sm mx-auto">
           <DialogHeader>
