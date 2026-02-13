@@ -88,7 +88,7 @@ export async function POST(req: Request) {
       const pdfBuffer = Buffer.concat(chunks);
 
       const { data, error } = await resend.emails.send({
-        from: `FloraSoft <noreply@send.florasoft.website>`,
+        from: `FloraSoft <noreply@florasoft.website>`,
         to: [shop.email],
         subject: `Листівка до замовлення #${shortId}`,
         html: `
