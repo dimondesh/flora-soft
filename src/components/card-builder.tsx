@@ -407,10 +407,13 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                             />
                           </div>
 
-                          <div className="absolute inset-0 flex items-center justify-center p-8 z-10">
+                          <div
+                            className="absolute inset-0 flex items-center justify-center z-10"
+                            style={{ padding: "6.7%" }}
+                          >
                             <p
                               className={cn(
-                                "text-lg whitespace-pre-wrap leading-relaxed break-words select-none drop-shadow-md text-center pb-6",
+                                "text-lg whitespace-pre-wrap leading-relaxed break-words select-none drop-shadow-md text-center",
                                 variant.text,
                                 selectedFont.class,
                               )}
@@ -420,7 +423,10 @@ export default function CardBuilder({ shop }: { shop: ShopData }) {
                           </div>
 
                           {signature && (
-                            <div className="absolute bottom-8 right-8 z-20 max-w-[80%] text-right">
+                            <div
+                              className="absolute bottom-0 right-0 z-20 text-right w-full"
+                              style={{ padding: "6.7%", paddingBottom: "15%" }}
+                            >
                               <p
                                 className={cn(
                                   "text-md opacity-90 select-none drop-shadow-md",

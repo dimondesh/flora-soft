@@ -94,7 +94,7 @@ const CROP_LENGTH = 5 * MM_TO_PT;
 const MARK_BUFFER = 20 * MM_TO_PT;
 
 // Safe Area
-const SAFE_PADDING = 12 * MM_TO_PT;
+const SAFE_PADDING = 7 * MM_TO_PT;
 
 // Styles
 const styles = StyleSheet.create({
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     lineHeight: 1.5,
-    paddingBottom: 20,
+    paddingBottom: 0,
   },
   signatureWrapper: {
     position: "absolute",
@@ -152,16 +152,16 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: 0,
+    bottom: -SAFE_PADDING + 3 * MM_TO_PT, // Виносимо технічний текст нижче Safe Area, але в межах A6
     right: 0,
     width: "100%",
     textAlign: "right",
   },
   brandName: {
-    fontSize: 8,
+    fontSize: 6,
     color: "#94a3b8",
     textTransform: "uppercase",
-    letterSpacing: 2,
+    letterSpacing: 1,
     fontWeight: 700,
   },
 });
@@ -170,7 +170,7 @@ interface DesignConfig {
   url: string;
   color: string;
   bgColor: string;
-  stretchToBleed?: boolean; // Флаг для растягивания на всю область с вылетами
+  stretchToBleed?: boolean;
 }
 
 const DESIGNS: Record<string, DesignConfig> = {
@@ -228,7 +228,7 @@ const DESIGNS: Record<string, DesignConfig> = {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/1_dygtar.png",
     color: "#4E342E",
     bgColor: "#FDF4F5",
-    stretchToBleed: true, // Включаем растягивание для этого дизайна
+    stretchToBleed: true,
   },
   warm_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/2_yqzcqg.png",
@@ -366,7 +366,6 @@ export const CardPdfDocument = ({
     if (fontId === "font-playfair") activeFontFamily = "Times-Roman";
   }
 
-  // Логика позиционирования и размера картинки
   const imageStyle = config.stretchToBleed
     ? {
         top: 0,
@@ -384,7 +383,6 @@ export const CardPdfDocument = ({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Background Color применяется к Wrapper как заливка под вылеты */}
         <View style={[styles.wrapper, { backgroundColor: config.bgColor }]}>
           <Image
             src={config.url}
