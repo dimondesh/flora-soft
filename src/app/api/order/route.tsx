@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { renderToStream } from "@react-pdf/renderer";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import connectDB from "@/lib/db";
 import Order from "@/models/Order";
 import Shop from "@/models/Shop";
@@ -14,24 +14,7 @@ const MAX_TEXT_LENGTH = Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_TEXT) || 200;
 const MAX_SIGNATURE_LENGTH =
   Number(process.env.NEXT_PUBLIC_MAX_SYMBOLS_SIGN) || 20;
 
-const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
-const IS_SECURE = SMTP_PORT === 465;
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.ethereal.email",
-  port: SMTP_PORT,
-  secure: IS_SECURE,
-  auth: {
-    user: process.env.SMTP_USER || "ethereal_user",
-    pass: process.env.SMTP_PASS || "ethereal_pass",
-  },
-  tls: {
-    ciphers: "SSLv3",
-    rejectUnauthorized: false,
-  },
-  connectionTimeout: 20000,
-  socketTimeout: 20000,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
@@ -104,9 +87,9 @@ export async function POST(req: Request) {
       }
       const pdfBuffer = Buffer.concat(chunks);
 
-      await transporter.sendMail({
-        from: '"FloraSoft" <noreply@florasoft.com>',
-        to: shop.email,
+      const { data, error } = await resend.emails.send({
+        from: `FloraSoft <noreply@send.florasoft.website>`,
+        to: [shop.email],
         subject: `Листівка до замовлення #${shortId}`,
         html: `
           <div style="font-family: sans-serif; padding: 20px; background-color: #f8fafc;">
@@ -126,10 +109,14 @@ export async function POST(req: Request) {
           {
             filename: `card-${shortId}.pdf`,
             content: pdfBuffer,
-            contentType: "application/pdf",
           },
         ],
       });
+
+      if (error) {
+        console.error("Resend error:", error);
+        throw new Error(error.message);
+      }
 
       newOrder.status = "sent";
       await newOrder.save();
