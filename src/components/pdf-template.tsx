@@ -197,12 +197,12 @@ const DESIGNS: Record<string, DesignConfig> = {
   fun_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770948559/2_edited_1_a08gir.png",
     color: "#6D5D6E",
-    bgColor: "#FEFCFB",
+    bgColor: "#FEFAFA",
   },
   fun_3: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944218/3_edited_ejmimb.png",
     color: "#B71C1C",
-    bgColor: "#FBFAF5",
+    bgColor: "#FCFCF7",
   },
   fun_4: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944220/4_avhwvw.png",
@@ -212,7 +212,7 @@ const DESIGNS: Record<string, DesignConfig> = {
   minimal_1: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943983/1_rxvdse.png",
     color: "#8D6E63",
-    bgColor: "#FDF7F5",
+    bgColor: "#FEF9F7",
   },
   minimal_2: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770943982/2_manpil.png",
@@ -238,12 +238,12 @@ const DESIGNS: Record<string, DesignConfig> = {
   warm_3: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944424/3_ifdl3n.png",
     color: "#6B4F7E",
-    bgColor: "#FDF8F3",
+    bgColor: "#FEFAF6",
   },
   warm_4: {
     url: "https://res.cloudinary.com/dzbf3cpwm/image/upload/v1770944425/4_edited_qfsn7d.png",
     color: "#603813",
-    bgColor: "#FEFBFB",
+    bgColor: "#FDF9F9",
   },
 };
 
